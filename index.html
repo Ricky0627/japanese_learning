@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-[1400px] w-full space-y-8">
+    <div class="container mx-auto px-4 py-8 max-w-[1200px] w-full space-y-8">
         
         <div id="auth-panel" class="card bg-base-100 shadow-xl max-w-md mx-auto">
             <div class="card-body">
@@ -46,10 +46,10 @@
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">按照順序完成 4 階段特訓，精通所有日文基礎發音！</p>
+                <p class="text-gray-500">按照順序完成 5 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-primary flex flex-col justify-between">
                     <div class="card-body">
@@ -111,7 +111,7 @@
                             <h2 class="card-title text-error text-xl">❹ 濁音盲測</h2>
                             <div class="badge badge-error font-bold p-3" id="dakuon-exam-percent">0%</div>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">最終檢定考場。無提示測驗你的濁音反射神經，徹底消滅發音混淆的弱點！</p>
+                        <p class="text-gray-500 text-sm mt-2">單元檢定考場。無提示測驗你的濁音反射神經，徹底消滅發音混淆的弱點！</p>
                         
                         <div class="w-full mt-6">
                             <progress id="dakuon-exam-bar" class="progress progress-error w-full" value="0" max="100"></progress>
@@ -120,6 +120,24 @@
                     </div>
                     <div class="px-6 pb-6 text-right">
                         <a href="dakuon_exam.html" class="btn btn-error btn-sm w-full text-error-content">挑戰盲測</a>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between md:col-span-2 lg:col-span-1">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-accent text-xl">❺ 終極綜合盲測</h2>
+                            <div class="badge badge-accent font-bold p-3" id="final-exam-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸五十音！</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
+                            <p class="text-xs text-gray-400 mt-1 text-right" id="final-exam-count">精熟度: 0 / 71 音</p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="final_exam.html" class="btn btn-accent btn-sm w-full text-accent-content">挑戰最終魔王</a>
                     </div>
                 </div>
 
@@ -172,7 +190,7 @@
             }
         });
 
-        // 撈取資料並計算 4 個進度條的百分比
+        // 撈取資料並計算 5 個進度條的百分比
         async function fetchAndRenderProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -180,7 +198,8 @@
                 let learnedCount = 0;     
                 let examLearnedCount = 0; 
                 let dakuonLearnedCount = 0;
-                let dakuonExamLearnedCount = 0; // 新增：濁音盲測進度
+                let dakuonExamLearnedCount = 0;
+                let finalExamLearnedCount = 0; // 新增：終極盲測進度
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -188,6 +207,7 @@
                     examLearnedCount = (data.examLearned || []).length;
                     dakuonLearnedCount = (data.dakuonLearned || []).length;
                     dakuonExamLearnedCount = (data.dakuonExamLearned || []).length;
+                    finalExamLearnedCount = (data.finalExamLearned || []).length;
                 }
 
                 // 計算百分比
@@ -195,6 +215,7 @@
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
                 const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
                 const dakuonExamPercentage = Math.round((dakuonExamLearnedCount / 25) * 100);
+                const finalExamPercentage = Math.round((finalExamLearnedCount / 71) * 100); // 總數 71
 
                 // 更新卡片 1 (清音特訓) 
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
@@ -216,6 +237,11 @@
                 document.getElementById('dakuon-exam-bar').value = dakuonExamPercentage;
                 document.getElementById('dakuon-exam-count').textContent = `精熟度: ${dakuonExamLearnedCount} / 25 音`;
 
+                // 更新卡片 5 (終極綜合盲測)
+                document.getElementById('final-exam-percent').textContent = `${finalExamPercentage}%`;
+                document.getElementById('final-exam-bar').value = finalExamPercentage;
+                document.getElementById('final-exam-count').textContent = `精熟度: ${finalExamLearnedCount} / 71 音`;
+
             } catch (error) {
                 console.error("首頁讀取進度失敗:", error);
             }
@@ -235,7 +261,7 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
                 await setDoc(doc(db, "users_progress", cred.user.uid), { 
-                    learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [] 
+                    learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [], finalExamLearned: [] 
                 }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
