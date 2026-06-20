@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>五十音打字學習網</title>
+    <title>五十音認字與打字特訓</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -18,6 +18,10 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+        /* 讓字卡點擊時有按壓效果 */
+        .kana-card:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="bg-base-200 min-h-screen p-4 md:p-8 flex flex-col items-center">
@@ -25,7 +29,10 @@
     <div class="max-w-2xl w-full space-y-6">
         
         <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
-            <h1 class="text-xl font-bold text-primary">五十音拼音特訓</h1>
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-sm btn-ghost text-gray-500">← 回首頁</a>
+                <h1 class="text-xl font-bold text-primary">五十音認字特訓</h1>
+            </div>
             <div id="user-status" class="text-sm">
                 <span id="display-email" class="mr-2 text-gray-500">尚未登入</span>
                 <button id="btn-logout" class="btn btn-xs btn-outline btn-error hidden">登出</button>
@@ -62,13 +69,17 @@
                     <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
                 </div>
 
-                <div id="kana-card" class="card bg-base-200 border-2 border-base-300 w-64 h-64 flex items-center justify-center shadow-inner transition-colors">
-                    <h2 id="current-kana" class="text-8xl font-normal select-none">あ</h2>
+                <div id="kana-card" class="kana-card card bg-base-200 border-2 border-base-300 w-64 h-64 flex flex-col items-center justify-center shadow-inner transition-all cursor-pointer relative" title="點擊重新播放發音">
+                    <div class="absolute top-4 right-4 text-gray-400 text-2xl">🔊</div>
+                    
+                    <h2 id="current-kana" class="text-8xl font-normal select-none mt-4">あ</h2>
+                    <p id="current-romaji" class="text-3xl font-bold text-primary mt-2 select-none">a</p>
                 </div>
+                <p class="text-xs text-gray-400 mt-2">聽不清楚？點擊字卡可重新播放發音</p>
 
-                <div class="form-control w-full max-w-xs mt-8">
+                <div class="form-control w-full max-w-xs mt-6">
                     <label class="label justify-center">
-                        <span class="label-text text-lg">請輸入羅馬拼音 (例如: a)</span>
+                        <span class="label-text text-lg">照著字卡打出拼音來加深記憶！</span>
                     </label>
                     <input type="text" id="romaji-input" autocomplete="off" placeholder="在此輸入..." class="input input-bordered input-lg w-full text-center text-2xl" />
                     <label class="label justify-center h-8">
@@ -104,7 +115,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 五十音資料庫 (基礎 46 音，過濾掉佔位用空白)
         const gojuonData = [
             { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
@@ -118,8 +128,8 @@
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
 
-        let learnedRomaji = []; // 儲存已學會的拼音，例如 ['a', 'i', 'ka']
-        let currentTarget = null; // 當前正在測驗的字母物件
+        let learnedRomaji = []; 
+        let currentTarget = null; 
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
@@ -129,6 +139,7 @@
             emailInput: document.getElementById('email'),
             pwdInput: document.getElementById('password'),
             currentKana: document.getElementById('current-kana'),
+            currentRomaji: document.getElementById('current-romaji'), // 新增 DOM 選擇
             romajiInput: document.getElementById('romaji-input'),
             feedbackMsg: document.getElementById('feedback-msg'),
             progressBar: document.getElementById('progress-bar'),
@@ -137,10 +148,22 @@
             kanaCard: document.getElementById('kana-card')
         };
 
-        // --- 1. 身分驗證邏輯 ---
+        // --- 發音功能 ---
+        function playKanaAudio() {
+            if (!currentTarget) return;
+            // 使用瀏覽器內建語音合成
+            const utterance = new SpeechSynthesisUtterance(currentTarget.kana);
+            utterance.lang = 'ja-JP'; // 設定為日文
+            utterance.rate = 0.8;     // 稍微放慢語速 (預設為 1)
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 綁定點擊字卡時播放聲音
+        DOM.kanaCard.addEventListener('click', playKanaAudio);
+
+        // --- 登入與資料庫邏輯 ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 已登入
                 DOM.authPanel.classList.add('hidden');
                 DOM.learningPanel.classList.remove('hidden');
                 DOM.btnLogout.classList.remove('hidden');
@@ -148,9 +171,8 @@
                 DOM.syncStatus.textContent = "正在從雲端載入進度...";
                 
                 await loadCloudProgress(user.uid);
-                nextQuestion(); // 開始測驗
+                nextQuestion(); 
             } else {
-                // 未登入
                 DOM.authPanel.classList.remove('hidden');
                 DOM.learningPanel.classList.add('hidden');
                 DOM.btnLogout.classList.add('hidden');
@@ -179,7 +201,6 @@
 
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
-        // --- 2. 雲端資料庫邏輯 ---
         async function loadCloudProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -202,26 +223,30 @@
             } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
         }
 
-        // --- 3. 遊戲測驗邏輯 ---
+        // --- 測驗邏輯 ---
         function nextQuestion() {
-            // 找出還沒學過的五十音
             const unlearned = gojuonData.filter(item => !learnedRomaji.includes(item.romaji));
             
             if (unlearned.length === 0) {
                 DOM.currentKana.textContent = "🎉";
-                DOM.currentKana.classList.add("text-6xl");
+                DOM.currentRomaji.textContent = "完成";
                 DOM.romajiInput.disabled = true;
                 DOM.romajiInput.placeholder = "恭喜！已完成所有基礎練習";
                 return;
             }
 
-            // 隨機挑選一個還沒學會的字
             const randomIndex = Math.floor(Math.random() * unlearned.length);
             currentTarget = unlearned[randomIndex];
             
+            // 同時顯示假名與羅馬拼音
             DOM.currentKana.textContent = currentTarget.kana;
+            DOM.currentRomaji.textContent = currentTarget.romaji;
+            
             DOM.romajiInput.value = '';
-            DOM.romajiInput.focus(); // 自動將游標對焦到輸入框
+            DOM.romajiInput.focus(); 
+
+            // 自動播放發音 (如果瀏覽器沒有阻擋的話)
+            playKanaAudio();
         }
 
         function updateProgressUI() {
@@ -230,30 +255,24 @@
             DOM.progressText.textContent = `${count} / 46`;
         }
 
-        // 監聽輸入框的打字事件
         DOM.romajiInput.addEventListener('input', (e) => {
             if (!currentTarget) return;
             
             const userInput = e.target.value.trim().toLowerCase();
-            DOM.feedbackMsg.classList.add('opacity-0'); // 隱藏錯誤提示
+            DOM.feedbackMsg.classList.add('opacity-0'); 
 
-            // 判斷是否答對
             if (userInput === currentTarget.romaji) {
-                // 答對的視覺特效
                 DOM.kanaCard.classList.add('success-anim');
                 setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
-                // 紀錄並儲存進度
                 if (!learnedRomaji.includes(currentTarget.romaji)) {
                     learnedRomaji.push(currentTarget.romaji);
                     updateProgressUI();
                     saveCloudProgress();
                 }
                 
-                // 前進下一題
-                setTimeout(nextQuestion, 200); 
+                setTimeout(nextQuestion, 300); 
             } else if (userInput.length >= currentTarget.romaji.length && userInput !== currentTarget.romaji) {
-                // 如果輸入的長度已經到了卻不對，顯示錯誤提示
                 DOM.feedbackMsg.classList.remove('opacity-0');
             }
         });
