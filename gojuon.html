@@ -70,7 +70,7 @@
 
                 <div class="w-full mb-6">
                     <div class="flex justify-between text-sm mb-1 font-bold">
-                        <span>總學習進度 <span class="text-xs font-normal text-gray-400 ml-1">(通過測驗才算真正學會喔！)</span></span>
+                        <span>總學習進度 <span class="text-xs font-normal text-gray-400 ml-1">(無提示通過測驗才會存檔喔！)</span></span>
                         <span id="progress-text" class="text-primary">0 / 46</span>
                     </div>
                     <progress id="progress-bar" class="progress progress-primary w-full" value="0" max="46"></progress>
@@ -145,9 +145,9 @@
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
-        let reviewQueue = [];        
+        let reviewQueue = [];
+        let penaltyQueue = []; // 新增：冷宮清單，專門收留靠提示過關的字
 
-        // 新增：提示計時器與狀態
         let hintTimer = null;
         let usedHint = false;
 
@@ -184,10 +184,8 @@
             return array;
         }
 
-        // 發音邏輯 (force 參數用來強制發音，無視模式)
         function playKanaAudio(force = false) {
             if (!currentTarget) return;
-            // 複習模式下，除非強制，否則點擊字卡不會發音
             if (gameMode === 'REVIEW' && !force) return;
 
             const utterance = new SpeechSynthesisUtterance(currentTarget.kana);
@@ -198,10 +196,9 @@
 
         DOM.kanaCard.addEventListener('click', () => playKanaAudio(false));
 
-        // 點擊提示按鈕
         DOM.hintBtn.addEventListener('click', () => {
             usedHint = true;
-            playKanaAudio(true); // 強制播放提示音
+            playKanaAudio(true); 
             DOM.hintBtn.classList.remove('animate-pulse');
             DOM.romajiInput.focus();
         });
@@ -250,6 +247,7 @@
                 learnedRomaji = [];
                 recentBatch = [];
                 reviewQueue = [];
+                penaltyQueue = [];
                 gameMode = 'LEARN';
                 clearTimeout(hintTimer);
                 updateProgressUI();
@@ -298,7 +296,6 @@
                 currentTarget = reviewQueue[0];
                 setupReviewUI();
 
-                // 啟動 5 秒求救計時器
                 usedHint = false;
                 hintTimer = setTimeout(() => {
                     DOM.hintBtn.classList.remove('hidden');
@@ -311,13 +308,19 @@
                     return nextQuestion(); 
                 }
 
-                // 過濾掉已經真正學會的，以及「這輪正在學、但還沒測驗」的字
+                // 篩選出目前：(1) 還沒學會的 (2) 不在當前這輪的
                 const unlearned = gojuonData.filter(item => 
                     !learnedRomaji.includes(item.romaji) && 
                     !recentBatch.some(r => r.romaji === item.romaji)
                 );
                 
-                if (unlearned.length === 0) {
+                // 優先拿「不是冷宮」的全新字
+                const availableNew = unlearned.filter(item => !penaltyQueue.includes(item.romaji));
+
+                // 如果全新的字沒了，才准許從冷宮拿字 (這就是「放到最後面」的邏輯)
+                const poolToDrawFrom = availableNew.length > 0 ? availableNew : unlearned;
+
+                if (poolToDrawFrom.length === 0) {
                     if (recentBatch.length > 0) {
                         gameMode = 'REVIEW';
                         reviewQueue = shuffleArray([...recentBatch]);
@@ -327,8 +330,8 @@
                     return;
                 }
 
-                const randomIndex = Math.floor(Math.random() * unlearned.length);
-                currentTarget = unlearned[randomIndex];
+                const randomIndex = Math.floor(Math.random() * poolToDrawFrom.length);
+                currentTarget = poolToDrawFrom[randomIndex];
                 
                 setupLearnUI();
                 playKanaAudio(false); 
@@ -386,7 +389,6 @@
             
             const userInput = e.target.value.trim().toLowerCase();
             
-            // 重置錯誤訊息狀態
             DOM.feedbackMsg.classList.add('opacity-0'); 
             DOM.feedbackMsg.classList.remove('text-warning');
             DOM.feedbackMsg.classList.add('text-error');
@@ -400,7 +402,6 @@
                 setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
                 if (gameMode === 'LEARN') {
-                    // 學習模式不再把字加入 learnedRomaji 雲端進度，只加進暫存，等待測驗
                     if (!recentBatch.includes(currentTarget)) {
                         recentBatch.push(currentTarget); 
                     }
@@ -411,22 +412,29 @@
                     DOM.currentRomaji.classList.remove('hidden'); 
 
                     if (!usedHint) {
-                        // 真的學會了！無提示答對才加進度
+                        // 無提示答對：真正學會，存檔！
                         if (!learnedRomaji.includes(currentTarget.romaji)) {
                             learnedRomaji.push(currentTarget.romaji);
+                            
+                            // 如果這個字本來在冷宮，將它特赦移除
+                            penaltyQueue = penaltyQueue.filter(r => r !== currentTarget.romaji);
+                            
                             updateProgressUI();
-                            saveCloudProgress();
+                            saveCloudProgress(); // 複習測驗一答對，立刻存檔
                         }
                     } else {
-                        // 靠提示過關的：給予回饋，但不加進度，下次依然會出現在新字學習中
-                        DOM.feedbackMsg.textContent = "這次靠提示答對不列入進度，下次再挑戰！";
+                        // 靠提示過關：打入冷宮！
+                        if (!penaltyQueue.includes(currentTarget.romaji)) {
+                            penaltyQueue.push(currentTarget.romaji);
+                        }
+                        DOM.feedbackMsg.textContent = "這次靠提示答對，將移至最後面重新學習！";
                         DOM.feedbackMsg.classList.remove('text-error');
                         DOM.feedbackMsg.classList.add('text-warning');
                         DOM.feedbackMsg.classList.remove('opacity-0');
                     }
 
                     reviewQueue.shift(); 
-                    setTimeout(nextQuestion, usedHint ? 1500 : 800); // 如果有提示文字，稍微等久一點再切換
+                    setTimeout(nextQuestion, usedHint ? 1500 : 800); 
                 }
 
             } else if (userInput.length >= currentTarget.romaji.length && userInput !== currentTarget.romaji) {
