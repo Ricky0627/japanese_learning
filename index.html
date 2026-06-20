@@ -144,28 +144,32 @@
             }
         });
 
-        // 撈取資料並計算百分比 (%)
+        // 撈取資料並分別計算兩邊的百分比 (%)
         async function fetchAndRenderProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                let learnedCount = 0;
+                
+                let learnedCount = 0;     // 認字特訓進度
+                let examLearnedCount = 0; // 地獄盲測進度
 
                 if (docSnap.exists()) {
-                    const learnedList = docSnap.data().learned || [];
-                    learnedCount = learnedList.length;
+                    const data = docSnap.data();
+                    learnedCount = (data.learned || []).length;
+                    examLearnedCount = (data.examLearned || []).length;
                 }
 
-                // 換算百分比 (五十音總共 46 個有效音)
-                const percentage = Math.round((learnedCount / 46) * 100);
+                // 分別換算百分比
+                const gojuonPercentage = Math.round((learnedCount / 46) * 100);
+                const examPercentage = Math.round((examLearnedCount / 46) * 100);
 
-                // 更新卡片 1 (認字特訓) 的進度
-                document.getElementById('gojuon-percent').textContent = `${percentage}%`;
-                document.getElementById('gojuon-bar').value = percentage;
+                // 更新卡片 1 (認字特訓) 
+                document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
+                document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
 
-                // 更新卡片 2 (地獄盲測) 的精熟度參考
-                document.getElementById('exam-percent').textContent = `${percentage}%`;
-                document.getElementById('exam-bar').value = percentage;
+                // 更新卡片 2 (地獄盲測考場) -> 終於有自己獨立的成績了！
+                document.getElementById('exam-percent').textContent = `${examPercentage}%`;
+                document.getElementById('exam-bar').value = examPercentage;
 
             } catch (error) {
                 console.error("首頁讀取進度失敗:", error);
