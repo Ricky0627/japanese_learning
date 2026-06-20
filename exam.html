@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音地獄測驗與弱點強化</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 答對的綠色彈跳動畫 */
+        .success-anim {
+            animation: pop 0.3s ease-in-out;
+            background-color: oklch(var(--su) / 0.2) !important;
+            border-color: oklch(var(--su)) !important;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        /* 答錯/跳過的紅色震動動畫 */
+        .error-anim {
+            animation: shake 0.4s ease-in-out;
+            background-color: oklch(var(--er) / 0.2) !important;
+            border-color: oklch(var(--er)) !important;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-2xl w-full space-y-6">
+        
+        <!-- 頂部導覽 -->
+        <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    回首頁
+                </a>
+            </div>
+            <div id="user-status" class="text-sm font-bold text-primary">
+                地獄測驗模式
+            </div>
+        </div>
+
+        <!-- 遊戲主畫面 (第一與第二階段共用) -->
+        <div id="game-panel" class="card bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center relative">
+                
+                <h2 id="phase-title" class="text-2xl font-bold text-primary mb-2">🔥 第一階段：全範圍盲測</h2>
+                <p id="phase-desc" class="text-sm text-gray-500 mb-4">打出正確拼音即過關。不知道可按 Enter 或點擊跳過。</p>
+
+                <!-- 進度條 -->
+                <div class="w-full mb-6">
+                    <div class="flex justify-between text-sm mb-1 font-bold">
+                        <span>測驗進度</span>
+                        <span id="progress-text" class="text-primary">0 / 46</span>
+                    </div>
+                    <progress id="progress-bar" class="progress progress-primary w-full" value="0" max="46"></progress>
+                </div>
+
+                <!-- 測驗字卡 (完全無提示) -->
+                <div id="kana-card" class="card bg-base-200 border-2 border-base-300 w-64 h-64 flex flex-col items-center justify-center shadow-inner transition-all">
+                    <h2 id="current-kana" class="text-8xl font-normal select-none">あ</h2>
+                </div>
+
+                <!-- 輸入區 -->
+                <div class="form-control w-full max-w-xs mt-8">
+                    <input type="text" id="romaji-input" autocomplete="off" placeholder="輸入拼音..." class="input input-bordered input-lg w-full text-center text-2xl" />
+                </div>
+
+                <!-- 跳過按鈕 -->
+                <button id="btn-skip" class="btn btn-outline btn-warning w-full max-w-xs mt-4">不知道，跳過</button>
+
+            </div>
+        </div>
+
+        <!-- 中場休息畫面 (列出不熟名單) -->
+        <div id="intermission-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center">
+                <h2 class="text-3xl font-bold text-warning mb-2">第一階段結束</h2>
+                <p class="text-gray-500 mb-6">以下是你在測驗中錯過或跳過的字，請先複習一下：</p>
+                
+                <div id="weak-list" class="flex flex-wrap gap-3 justify-center mb-8">
+                    <!-- 不熟的字卡會動態產生在這裡 -->
+                </div>
+
+                <div class="alert alert-info shadow-sm mb-6 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>第二階段規則：這些不熟的字，每個都必須答對 2 次才算真正過關！</span>
+                </div>
+
+                <button id="btn-start-phase2" class="btn btn-primary w-full max-w-xs">開始第二階段特訓</button>
+            </div>
+        </div>
+
+        <!-- 結業畫面 -->
+        <div id="complete-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-primary mb-2">測驗完美通關！</h2>
+                <p class="text-gray-500 mb-8">你已經成功克服了所有不熟的五十音，太厲害了！</p>
+                <a href="index.html" class="btn btn-primary">回首頁</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const gojuonData = [
+            { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
+            { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
+            { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'shi' }, { kana: 'す', romaji: 'su' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
+            { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
+            { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
+            { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
+            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
+            { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
+            { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
+            { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
+        ];
+
+        // --- 狀態變數 ---
+        let currentPhase = 1; // 1: 第一階段, 2: 第二階段
+        let currentTarget = null;
+        
+        // 第一階段的題目佇列
+        let phase1Queue = [];
+        // 不熟名單 (存物件)
+        let weakList = [];
+        
+        // 第二階段的計數器 { "a": 2, "ka": 2, ... }
+        let phase2Counts = {};
+        let phase2TotalNeeded = 0; // 第二階段總共要答對的次數
+        let phase2CurrentDone = 0;
+
+        const DOM = {
+            gamePanel: document.getElementById('game-panel'),
+            intermissionPanel: document.getElementById('intermission-panel'),
+            completePanel: document.getElementById('complete-panel'),
+            phaseTitle: document.getElementById('phase-title'),
+            phaseDesc: document.getElementById('phase-desc'),
+            kanaCard: document.getElementById('kana-card'),
+            currentKana: document.getElementById('current-kana'),
+            romajiInput: document.getElementById('romaji-input'),
+            btnSkip: document.getElementById('btn-skip'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            weakListContainer: document.getElementById('weak-list'),
+            btnStartPhase2: document.getElementById('btn-start-phase2')
+        };
+
+        // --- 工具：洗牌 ---
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // --- 系統初始化 ---
+        function initGame() {
+            currentPhase = 1;
+            weakList = [];
+            phase1Queue = shuffleArray(gojuonData); // 打亂 46 音
+            nextPhase1();
+        }
+
+        // --- 第一階段邏輯 ---
+        function nextPhase1() {
+            // 更新進度條
+            const total = gojuonData.length;
+            const done = total - phase1Queue.length;
+            DOM.progressBar.max = total;
+            DOM.progressBar.value = done;
+            DOM.progressText.textContent = `${done} / ${total}`;
+
+            if (phase1Queue.length === 0) {
+                endPhase1();
+                return;
+            }
+
+            currentTarget = phase1Queue.pop();
+            DOM.currentKana.textContent = currentTarget.kana;
+            DOM.romajiInput.value = '';
+            DOM.romajiInput.focus();
+        }
+
+        function endPhase1() {
+            DOM.gamePanel.classList.add('hidden');
+            
+            if (weakList.length === 0) {
+                // 如果全對，直接顯示完美通關
+                DOM.completePanel.classList.remove('hidden');
+            } else {
+                // 有錯字，進入中場休息
+                DOM.intermissionPanel.classList.remove('hidden');
+                DOM.weakListContainer.innerHTML = '';
+                
+                // 渲染不熟名單字卡
+                weakList.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-warning/20 border border-warning text-warning-content rounded-lg px-4 py-2 text-center";
+                    card.innerHTML = `<div class="text-2xl font-bold">${item.kana}</div><div class="text-sm opacity-80">${item.romaji}</div>`;
+                    DOM.weakListContainer.appendChild(card);
+                });
+            }
+        }
+
+        // --- 第二階段邏輯 ---
+        DOM.btnStartPhase2.addEventListener('click', () => {
+            currentPhase = 2;
+            DOM.intermissionPanel.classList.add('hidden');
+            DOM.gamePanel.classList.remove('hidden');
+            
+            DOM.phaseTitle.textContent = "🔥 第二階段：弱點強化特訓";
+            DOM.phaseDesc.textContent = "每個字必須成功答對 2 次！";
+            DOM.phaseTitle.classList.replace('text-primary', 'text-warning');
+            DOM.progressBar.classList.replace('progress-primary', 'progress-warning');
+
+            // 初始化計數器 (每個錯字要答對 2 次)
+            phase2Counts = {};
+            weakList.forEach(item => {
+                phase2Counts[item.romaji] = 2;
+            });
+            phase2TotalNeeded = weakList.length * 2;
+            phase2CurrentDone = 0;
+
+            currentTarget = null; // 重置當前目標，以免影響第一輪防重複判斷
+            nextPhase2();
+        });
+
+        function nextPhase2() {
+            // 更新進度條
+            DOM.progressBar.max = phase2TotalNeeded;
+            DOM.progressBar.value = phase2CurrentDone;
+            DOM.progressText.textContent = `${phase2CurrentDone} / ${phase2TotalNeeded}`;
+
+            // 找出還需要練習的字池
+            let pool = Object.keys(phase2Counts).filter(romaji => phase2Counts[romaji] > 0);
+
+            if (pool.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            let nextRomaji;
+            if (pool.length === 1) {
+                // 只剩一個字，只能出它了
+                nextRomaji = pool[0];
+            } else {
+                // 隨機挑選，但絕對不能跟「上一題」一樣
+                do {
+                    nextRomaji = pool[Math.floor(Math.random() * pool.length)];
+                } while (currentTarget && nextRomaji === currentTarget.romaji);
+            }
+
+            // 設定目標並更新畫面
+            currentTarget = weakList.find(item => item.romaji === nextRomaji);
+            DOM.currentKana.textContent = currentTarget.kana;
+            DOM.romajiInput.value = '';
+            DOM.romajiInput.focus();
+        }
+
+        // --- 輸入與判斷邏輯 ---
+        function handleCorrect() {
+            DOM.kanaCard.classList.add('success-anim');
+            setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
+
+            if (currentPhase === 1) {
+                setTimeout(nextPhase1, 200);
+            } else {
+                // 第二階段：成功答對，該字剩餘次數扣 1，總完成進度加 1
+                phase2Counts[currentTarget.romaji]--;
+                phase2CurrentDone++;
+                setTimeout(nextPhase2, 200);
+            }
+        }
+
+        function handleWrong() {
+            DOM.kanaCard.classList.add('error-anim');
+            setTimeout(() => DOM.kanaCard.classList.remove('error-anim'), 300);
+
+            if (currentPhase === 1) {
+                // 加入不熟名單 (如果還沒加過)
+                if (!weakList.some(item => item.romaji === currentTarget.romaji)) {
+                    weakList.push(currentTarget);
+                }
+                setTimeout(nextPhase1, 300);
+            } else {
+                // 第二階段答錯：次數不扣，直接換下一題繼續練
+                setTimeout(nextPhase2, 300);
+            }
+        }
+
+        // 即時比對 (打對字瞬間過關)
+        DOM.romajiInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (currentTarget && val === currentTarget.romaji) {
+                handleCorrect();
+            }
+        });
+
+        // 捕捉 Enter 鍵 (打錯按 Enter 視為失敗)
+        DOM.romajiInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = e.target.value.trim().toLowerCase();
+                // 如果按 Enter 時字不對，就當作答錯
+                if (val !== currentTarget.romaji) {
+                    handleWrong();
+                }
+            }
+        });
+
+        // 點擊跳過按鈕
+        DOM.btnSkip.addEventListener('click', () => {
+            if (currentTarget) {
+                handleWrong();
+            }
+        });
+
+        // 啟動測驗
+        initGame();
+    </script>
+</body>
+</html>
