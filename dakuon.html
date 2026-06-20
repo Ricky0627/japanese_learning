@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>濁音/半濁音對照特訓</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .success-anim { animation: pop 0.3s ease-in-out; background-color: oklch(var(--su) / 0.2) !important; border-color: oklch(var(--su)) !important; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .kana-card:active { transform: scale(0.95); }
+        .review-mode-card { background-color: oklch(var(--wa) / 0.1); border-color: oklch(var(--wa)); }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-2xl w-full space-y-6">
+        
+        <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    回首頁
+                </a>
+            </div>
+            <div id="user-status" class="text-sm">
+                <span id="display-email" class="mr-2 text-gray-500 font-bold">載入中...</span>
+                <button id="btn-logout" class="btn btn-xs btn-outline btn-error hidden">登出</button>
+            </div>
+        </div>
+
+        <div id="auth-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body">
+                <h2 class="card-title mb-2">登入以儲存進度</h2>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">電子信箱</span></label>
+                    <input type="email" id="email" placeholder="輸入信箱..." class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full mt-2">
+                    <label class="label"><span class="label-text">密碼</span></label>
+                    <input type="password" id="password" placeholder="輸入密碼..." class="input input-bordered w-full" />
+                </div>
+                <div class="card-actions justify-end mt-6">
+                    <button id="btn-register" class="btn btn-outline btn-secondary">建立新帳號</button>
+                    <button id="btn-login" class="btn btn-primary">登入</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="learning-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center relative">
+                
+                <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
+
+                <h2 id="mode-title" class="text-2xl font-bold text-primary mb-4">🌟 學習新進度</h2>
+
+                <div class="w-full mb-6">
+                    <div class="flex justify-between text-sm mb-1 font-bold">
+                        <span>濁音總學習進度</span>
+                        <span id="progress-text" class="text-primary">0 / 25</span>
+                    </div>
+                    <progress id="progress-bar" class="progress progress-primary w-full" value="0" max="25"></progress>
+                    <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
+                </div>
+
+                <div id="kana-card" class="kana-card card bg-base-200 border-2 border-base-300 w-full max-w-sm h-64 flex flex-col items-center justify-center shadow-inner transition-all cursor-pointer relative" title="點擊重新播放發音">
+                    <div id="audio-icon" class="absolute top-4 right-4 text-gray-400 text-2xl">🔊</div>
+                    
+                    <div id="learn-view" class="flex items-center justify-center gap-4 w-full">
+                        <div class="flex flex-col items-center opacity-40">
+                            <h2 id="base-kana" class="text-6xl font-normal select-none">か</h2>
+                            <p id="base-romaji" class="text-2xl font-bold mt-2 select-none">ka</p>
+                        </div>
+                        <div class="text-4xl text-gray-300">➡️</div>
+                        <div class="flex flex-col items-center">
+                            <h2 id="learn-kana" class="text-7xl font-bold text-primary select-none">が</h2>
+                            <p id="learn-romaji" class="text-3xl font-bold text-primary mt-2 select-none">ga</p>
+                        </div>
+                    </div>
+
+                    <div id="review-view" class="flex flex-col items-center hidden">
+                        <h2 id="review-kana" class="text-8xl font-normal select-none mt-4">が</h2>
+                        <p id="review-romaji" class="text-3xl font-bold text-primary mt-2 select-none hidden">ga</p>
+                    </div>
+                </div>
+                
+                <div class="h-12 flex items-center justify-center mt-2">
+                    <button id="hint-btn" class="btn btn-outline btn-warning btn-sm hidden animate-pulse">
+                        🔊 想不起來嗎？聽提示音
+                    </button>
+                    <p id="hint-text" class="text-xs text-gray-400">聽不清楚？點擊字卡可重新播放發音</p>
+                </div>
+
+                <div class="form-control w-full max-w-xs mt-2">
+                    <label class="label justify-center">
+                        <span id="input-label" class="label-text text-lg font-medium">請輸入右邊的濁音拼音！</span>
+                    </label>
+                    <input type="text" id="romaji-input" autocomplete="off" placeholder="在此輸入..." class="input input-bordered input-lg w-full text-center text-2xl" />
+                    <label class="label justify-center h-8">
+                        <span id="feedback-msg" class="label-text-alt text-error text-base font-bold transition-opacity opacity-0">拼音錯誤，請再試一次！</span>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // ==========================================
+        // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
+            authDomain: "japanese-f3239.firebaseapp.com",
+            projectId: "japanese-f3239",
+            storageBucket: "japanese-f3239.firebasestorage.app"
+            messagingSenderId: "201568474978",
+            appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
+            measurementId: "G-9BYMSD88D9"
+        };
+        // ==========================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 濁音與半濁音資料庫 (附帶對應的清音)
+        const dakuonData = [
+            { baseKana: 'か', baseRomaji: 'ka', kana: 'が', romaji: 'ga' }, { baseKana: 'き', baseRomaji: 'ki', kana: 'ぎ', romaji: 'gi' }, { baseKana: 'く', baseRomaji: 'ku', kana: 'ぐ', romaji: 'gu' }, { baseKana: 'け', baseRomaji: 'ke', kana: 'げ', romaji: 'ge' }, { baseKana: 'こ', baseRomaji: 'ko', kana: 'ご', romaji: 'go' },
+            { baseKana: 'さ', baseRomaji: 'sa', kana: 'ざ', romaji: 'za' }, { baseKana: 'し', baseRomaji: 'shi', kana: 'じ', romaji: 'ji' }, { baseKana: 'す', baseRomaji: 'su', kana: 'ず', romaji: 'zu' }, { baseKana: 'せ', baseRomaji: 'se', kana: 'ぜ', romaji: 'ze' }, { baseKana: 'そ', baseRomaji: 'so', kana: 'ぞ', romaji: 'zo' },
+            { baseKana: 'た', baseRomaji: 'ta', kana: 'だ', romaji: 'da' }, { baseKana: 'ち', baseRomaji: 'chi', kana: 'ぢ', romaji: 'ji' }, { baseKana: 'つ', baseRomaji: 'tsu', kana: 'づ', romaji: 'zu' }, { baseKana: 'て', baseRomaji: 'te', kana: 'で', romaji: 'de' }, { baseKana: 'と', baseRomaji: 'to', kana: 'ど', romaji: 'do' },
+            { baseKana: 'は', baseRomaji: 'ha', kana: 'ば', romaji: 'ba' }, { baseKana: 'ひ', baseRomaji: 'hi', kana: 'び', romaji: 'bi' }, { baseKana: 'ふ', baseRomaji: 'fu', kana: 'ぶ', romaji: 'bu' }, { baseKana: 'へ', baseRomaji: 'he', kana: 'べ', romaji: 'be' }, { baseKana: 'ほ', baseRomaji: 'ho', kana: 'ぼ', romaji: 'bo' },
+            { baseKana: 'は', baseRomaji: 'ha', kana: 'ぱ', romaji: 'pa' }, { baseKana: 'ひ', baseRomaji: 'hi', kana: 'ぴ', romaji: 'pi' }, { baseKana: 'ふ', baseRomaji: 'fu', kana: 'ぷ', romaji: 'pu' }, { baseKana: 'へ', baseRomaji: 'he', kana: 'ぺ', romaji: 'pe' }, { baseKana: 'ほ', baseRomaji: 'ho', kana: 'ぽ', romaji: 'po' }
+        ];
+
+        let dakuonLearned = [];      
+        let currentTarget = null;    
+        let gameMode = 'LEARN';      
+        let recentBatch = [];        
+        let reviewQueue = [];
+        let penaltyQueue = []; 
+
+        let hintTimer = null;
+        let usedHint = false;
+
+        const DOM = {
+            authPanel: document.getElementById('auth-panel'),
+            learningPanel: document.getElementById('learning-panel'),
+            displayEmail: document.getElementById('display-email'),
+            btnLogout: document.getElementById('btn-logout'),
+            btnReset: document.getElementById('btn-reset'),
+            emailInput: document.getElementById('email'),
+            pwdInput: document.getElementById('password'),
+            modeTitle: document.getElementById('mode-title'),
+            
+            // 雙視圖 DOM
+            learnView: document.getElementById('learn-view'),
+            reviewView: document.getElementById('review-view'),
+            baseKana: document.getElementById('base-kana'),
+            baseRomaji: document.getElementById('base-romaji'),
+            learnKana: document.getElementById('learn-kana'),
+            learnRomaji: document.getElementById('learn-romaji'),
+            reviewKana: document.getElementById('review-kana'),
+            reviewRomaji: document.getElementById('review-romaji'),
+            
+            audioIcon: document.getElementById('audio-icon'),
+            hintBtn: document.getElementById('hint-btn'),
+            hintText: document.getElementById('hint-text'),
+            inputLabel: document.getElementById('input-label'),
+            romajiInput: document.getElementById('romaji-input'),
+            feedbackMsg: document.getElementById('feedback-msg'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            syncStatus: document.getElementById('cloud-sync-status'),
+            kanaCard: document.getElementById('kana-card')
+        };
+
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex > 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function playKanaAudio(force = false) {
+            if (!currentTarget) return;
+            if (gameMode === 'REVIEW' && !force) return;
+
+            const utterance = new SpeechSynthesisUtterance(currentTarget.kana);
+            utterance.lang = 'ja-JP'; 
+            utterance.rate = 0.8;     
+            window.speechSynthesis.speak(utterance);
+        }
+
+        DOM.kanaCard.addEventListener('click', () => playKanaAudio(false));
+
+        DOM.hintBtn.addEventListener('click', () => {
+            usedHint = true;
+            playKanaAudio(true); 
+            DOM.hintBtn.classList.remove('animate-pulse');
+            DOM.romajiInput.focus();
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                DOM.authPanel.classList.add('hidden');
+                DOM.learningPanel.classList.remove('hidden');
+                DOM.btnLogout.classList.remove('hidden');
+                DOM.displayEmail.textContent = user.email;
+                DOM.syncStatus.textContent = "正在從雲端載入進度...";
+                
+                await loadCloudProgress(user.uid);
+                nextQuestion(); 
+            } else {
+                DOM.authPanel.classList.remove('hidden');
+                DOM.learningPanel.classList.add('hidden');
+                DOM.btnLogout.classList.add('hidden');
+                DOM.displayEmail.textContent = "尚未登入";
+            }
+        });
+
+        document.getElementById('btn-register').addEventListener('click', async () => {
+            const em = DOM.emailInput.value.trim();
+            const pw = DOM.pwdInput.value;
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, em, pw);
+                await setDoc(doc(db, "users_progress", cred.user.uid), { dakuonLearned: [] }, { merge: true });
+                alert('註冊成功！');
+            } catch (error) { alert('註冊失敗: ' + error.message); }
+        });
+
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const em = DOM.emailInput.value.trim();
+            const pw = DOM.pwdInput.value;
+            try { await signInWithEmailAndPassword(auth, em, pw); } 
+            catch (error) { alert('登入失敗: 帳號或密碼錯誤'); }
+        });
+
+        DOM.btnLogout.addEventListener('click', () => signOut(auth));
+
+        DOM.btnReset.addEventListener('click', async () => {
+            if (confirm("確定要將進度歸零重新開始嗎？這個動作無法復原喔！")) {
+                dakuonLearned = [];
+                recentBatch = [];
+                reviewQueue = [];
+                penaltyQueue = [];
+                gameMode = 'LEARN';
+                clearTimeout(hintTimer);
+                updateProgressUI();
+                await saveCloudProgress();
+                window.location.reload();
+            }
+        });
+
+        async function loadCloudProgress(uid) {
+            try {
+                const docSnap = await getDoc(doc(db, "users_progress", uid));
+                if (docSnap.exists() && docSnap.data().dakuonLearned) {
+                    dakuonLearned = docSnap.data().dakuonLearned || [];
+                } else {
+                    dakuonLearned = [];
+                }
+                updateProgressUI();
+            } catch (error) { console.error("載入失敗", error); }
+        }
+
+        async function saveCloudProgress() {
+            const user = auth.currentUser;
+            if (!user) return;
+            DOM.syncStatus.textContent = "儲存中...";
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), { dakuonLearned: dakuonLearned }, { merge: true });
+                DOM.syncStatus.textContent = "已與雲端同步 ✓";
+            } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
+        }
+
+        function nextQuestion() {
+            clearTimeout(hintTimer);
+            DOM.hintBtn.classList.add('hidden');
+            DOM.hintBtn.classList.add('animate-pulse');
+
+            if (gameMode === 'REVIEW') {
+                if (reviewQueue.length === 0) {
+                    gameMode = 'LEARN';
+                    recentBatch = []; 
+                    DOM.romajiInput.value = '';
+                    DOM.romajiInput.placeholder = "太棒了！準備學習新字...";
+                    setTimeout(nextQuestion, 1000);
+                    return;
+                }
+
+                currentTarget = reviewQueue[0];
+                setupReviewUI();
+
+                usedHint = false;
+                hintTimer = setTimeout(() => {
+                    DOM.hintBtn.classList.remove('hidden');
+                }, 5000);
+
+            } else {
+                if (recentBatch.length === 5) {
+                    gameMode = 'REVIEW';
+                    reviewQueue = shuffleArray([...recentBatch]); 
+                    return nextQuestion(); 
+                }
+
+                const unlearned = dakuonData.filter(item => 
+                    !dakuonLearned.includes(item.romaji) && 
+                    !recentBatch.some(r => r.romaji === item.romaji)
+                );
+                
+                const availableNew = unlearned.filter(item => !penaltyQueue.includes(item.romaji));
+                const poolToDrawFrom = availableNew.length > 0 ? availableNew : unlearned;
+
+                if (poolToDrawFrom.length === 0) {
+                    if (recentBatch.length > 0) {
+                        gameMode = 'REVIEW';
+                        reviewQueue = shuffleArray([...recentBatch]);
+                        return nextQuestion();
+                    }
+                    setupCompleteUI();
+                    return;
+                }
+
+                const randomIndex = Math.floor(Math.random() * poolToDrawFrom.length);
+                currentTarget = poolToDrawFrom[randomIndex];
+                
+                setupLearnUI();
+                playKanaAudio(false); 
+            }
+
+            // 更新畫面資料
+            DOM.baseKana.textContent = currentTarget.baseKana;
+            DOM.baseRomaji.textContent = currentTarget.baseRomaji;
+            DOM.learnKana.textContent = currentTarget.kana;
+            DOM.learnRomaji.textContent = currentTarget.romaji;
+            DOM.reviewKana.textContent = currentTarget.kana;
+            DOM.reviewRomaji.textContent = currentTarget.romaji;
+            
+            DOM.romajiInput.value = '';
+            DOM.romajiInput.focus(); 
+        }
+
+        function setupLearnUI() {
+            DOM.modeTitle.textContent = "🌟 學習新字";
+            DOM.modeTitle.className = "text-2xl font-bold text-primary mb-4";
+            DOM.inputLabel.textContent = "請輸入右邊的濁音拼音！";
+            DOM.romajiInput.placeholder = "在此輸入...";
+            
+            DOM.kanaCard.classList.remove('review-mode-card');
+            DOM.learnView.classList.remove('hidden');
+            DOM.reviewView.classList.add('hidden');
+            
+            DOM.audioIcon.classList.remove('hidden');     
+            DOM.hintText.classList.remove('hidden');   
+        }
+
+        function setupReviewUI() {
+            DOM.modeTitle.textContent = "🔥 複習測驗 (無對照)";
+            DOM.modeTitle.className = "text-2xl font-bold text-warning mb-4";
+            DOM.inputLabel.textContent = "請憑記憶打出正確的濁音拼音！";
+            DOM.romajiInput.placeholder = "試試看...";
+            
+            DOM.kanaCard.classList.add('review-mode-card');
+            DOM.learnView.classList.add('hidden');
+            DOM.reviewView.classList.remove('hidden');
+            DOM.reviewRomaji.classList.add('hidden');
+            
+            DOM.audioIcon.classList.add('hidden');     
+            DOM.hintText.classList.add('hidden');   
+        }
+
+        function setupCompleteUI() {
+            DOM.modeTitle.textContent = "🏆 課程結業";
+            DOM.learnView.classList.add('hidden');
+            DOM.reviewView.classList.remove('hidden');
+            DOM.reviewKana.textContent = "🎉";
+            DOM.reviewRomaji.textContent = "恭喜完成濁音特訓！";
+            DOM.reviewRomaji.classList.remove('hidden');
+            DOM.romajiInput.disabled = true;
+            DOM.romajiInput.placeholder = "可以點擊上方回首頁挑戰其他項目！";
+            DOM.audioIcon.classList.add('hidden');
+            DOM.hintText.classList.add('hidden');
+        }
+
+        function updateProgressUI() {
+            const count = dakuonLearned.length;
+            DOM.progressBar.value = count;
+            DOM.progressText.textContent = `${count} / 25`;
+        }
+
+        DOM.romajiInput.addEventListener('input', (e) => {
+            if (!currentTarget) return;
+            
+            const userInput = e.target.value.trim().toLowerCase();
+            
+            DOM.feedbackMsg.classList.add('opacity-0'); 
+            DOM.feedbackMsg.classList.remove('text-warning');
+            DOM.feedbackMsg.classList.add('text-error');
+            DOM.feedbackMsg.textContent = "拼音錯誤，請再試一次！";
+
+            if (userInput === currentTarget.romaji) {
+                clearTimeout(hintTimer);
+                DOM.hintBtn.classList.add('hidden');
+
+                DOM.kanaCard.classList.add('success-anim');
+                setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
+
+                if (gameMode === 'LEARN') {
+                    if (!recentBatch.includes(currentTarget)) {
+                        recentBatch.push(currentTarget); 
+                    }
+                    setTimeout(nextQuestion, 300); 
+
+                } else if (gameMode === 'REVIEW') {
+                    playKanaAudio(true); 
+                    DOM.reviewRomaji.classList.remove('hidden'); 
+
+                    if (!usedHint) {
+                        if (!dakuonLearned.includes(currentTarget.romaji)) {
+                            dakuonLearned.push(currentTarget.romaji);
+                            penaltyQueue = penaltyQueue.filter(r => r !== currentTarget.romaji);
+                            updateProgressUI();
+                            saveCloudProgress();
+                        }
+                    } else {
+                        if (!penaltyQueue.includes(currentTarget.romaji)) {
+                            penaltyQueue.push(currentTarget.romaji);
+                        }
+                        DOM.feedbackMsg.textContent = "這次靠提示答對，將移至最後面重新學習！";
+                        DOM.feedbackMsg.classList.remove('text-error');
+                        DOM.feedbackMsg.classList.add('text-warning');
+                        DOM.feedbackMsg.classList.remove('opacity-0');
+                    }
+
+                    reviewQueue.shift(); 
+                    setTimeout(nextQuestion, usedHint ? 1500 : 800); 
+                }
+
+            } else if (userInput.length >= currentTarget.romaji.length && userInput !== currentTarget.romaji) {
+                DOM.feedbackMsg.classList.remove('opacity-0');
+            }
+        });
+    </script>
+</body>
+</html>
