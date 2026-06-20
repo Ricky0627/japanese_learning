@@ -244,18 +244,22 @@
 
         DOM.btnReset.addEventListener('click', async () => {
             if (confirm("確定要將進度歸零重新開始嗎？這個動作無法復原喔！")) {
+                // 1. 清空所有本機狀態與變數
                 learnedRomaji = [];
                 recentBatch = [];
                 reviewQueue = [];
                 penaltyQueue = [];
                 gameMode = 'LEARN';
                 clearTimeout(hintTimer);
+                
+                // 2. 更新畫面並將「空進度」覆蓋存回 Firebase 雲端
                 updateProgressUI();
                 await saveCloudProgress();
-                nextQuestion();
+                
+                // 3. 確保雲端存檔完成後，強制重新整理網頁，徹底重置所有狀態
+                window.location.reload();
             }
         });
-
         async function loadCloudProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
