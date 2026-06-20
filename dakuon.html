@@ -336,17 +336,22 @@
                 playKanaAudio(false); 
             }
 
-            DOM.baseKana.textContent = currentTarget.kana;
+            // --- 💡 這裡就是修正的關鍵點 ---
+            // 左側對照區：顯示對應的清音 (base)
+            DOM.baseKana.textContent = currentTarget.baseKana;
             DOM.baseRomaji.textContent = currentTarget.baseRomaji;
+            
+            // 右側學習區：顯示目標的濁音
             DOM.learnKana.textContent = currentTarget.kana;
             DOM.learnRomaji.textContent = currentTarget.romaji;
+            
+            // 複習模式區：只顯示目標的濁音
             DOM.reviewKana.textContent = currentTarget.kana;
             DOM.reviewRomaji.textContent = currentTarget.romaji;
             
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus(); 
         }
-
         function setupLearnUI() {
             DOM.modeTitle.textContent = "🌟 學習新字";
             DOM.modeTitle.className = "text-2xl font-bold text-primary mb-4";
