@@ -7,12 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .hover-card {
-            transition: all 0.3s ease;
-        }
-        .hover-card:hover {
-            transform: translateY(-5px);
-        }
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-5px); }
     </style>
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col items-center">
@@ -25,7 +21,7 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-6xl w-full space-y-8">
+    <div class="container mx-auto px-4 py-8 max-w-[1400px] w-full space-y-8">
         
         <div id="auth-panel" class="card bg-base-100 shadow-xl max-w-md mx-auto">
             <div class="card-body">
@@ -50,62 +46,80 @@
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">點擊下方的特訓項目開始練習，進度會即時同步。</p>
+                <p class="text-gray-500">按照順序完成 4 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
                 
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-primary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-primary text-2xl">あ 平假名特訓</h2>
+                            <h2 class="card-title text-primary text-xl">❶ 清音特訓</h2>
                             <div class="badge badge-primary font-bold p-3" id="gojuon-percent">0%</div>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">基礎初學者模式。畫面會附帶羅馬拼音與標準日語語音，學滿 5 個字自動進入盲打複習。</p>
+                        <p class="text-gray-500 text-sm mt-2">初學者認字模式。附帶羅馬拼音與語音輔助，穩紮穩打建立 46 音基礎記憶。</p>
                         
                         <div class="w-full mt-6">
                             <progress id="gojuon-bar" class="progress progress-primary w-full" value="0" max="100"></progress>
                             <p class="text-xs text-gray-400 mt-1 text-right" id="gojuon-count">已掌握: 0 / 46 音</p>
                         </div>
                     </div>
-                    <div class="px-8 pb-6 text-right">
-                        <a href="gojuon.html" class="btn btn-primary btn-sm w-full sm:w-auto">進入特訓</a>
-                    </div>
-                </div>
-
-                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
-                    <div class="card-body">
-                        <div class="flex justify-between items-start">
-                            <h2 class="card-title text-secondary text-2xl">が 濁音對照特訓</h2>
-                            <div class="badge badge-secondary font-bold p-3" id="dakuon-percent">0%</div>
-                        </div>
-                        <p class="text-gray-500 text-sm mt-2">進階發音轉換。採用左右對照顯示，利用清音基礎快速聯想並記憶濁音與半濁音。</p>
-                        
-                        <div class="w-full mt-6">
-                            <progress id="dakuon-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
-                            <p class="text-xs text-gray-400 mt-1 text-right" id="dakuon-count">已掌握: 0 / 25 音</p>
-                        </div>
-                    </div>
-                    <div class="px-8 pb-6 text-right">
-                        <a href="dakuon.html" class="btn btn-secondary btn-sm w-full sm:w-auto">進入特訓</a>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="gojuon.html" class="btn btn-primary btn-sm w-full">進入特訓</a>
                     </div>
                 </div>
 
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-warning flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-warning text-2xl">🔥 地獄盲測考場</h2>
+                            <h2 class="card-title text-warning text-xl">❷ 清音盲測</h2>
                             <div class="badge badge-warning font-bold p-3" id="exam-percent">0%</div>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">實力檢定模式。完全拿掉羅馬拼音與初始語音，答錯或跳過的字會打入弱點名單，強制進行雙倍強化！</p>
+                        <p class="text-gray-500 text-sm mt-2">實力檢定模式。拿掉羅馬拼音與語音，答錯字強制打入弱點名單進行雙倍強化！</p>
                         
                         <div class="w-full mt-6">
                             <progress id="exam-bar" class="progress progress-warning w-full" value="0" max="100"></progress>
-                            <p class="text-xs text-gray-400 mt-1 text-right">綜合精熟度指標</p>
+                            <p class="text-xs text-gray-400 mt-1 text-right" id="exam-count">精熟度: 0 / 46 音</p>
                         </div>
                     </div>
-                    <div class="px-8 pb-6 text-right">
-                        <a href="exam.html" class="btn btn-warning btn-sm w-full sm:w-auto text-warning-content">挑戰盲測</a>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="exam.html" class="btn btn-warning btn-sm w-full text-warning-content">挑戰盲測</a>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-secondary text-xl">❸ 濁音特訓</h2>
+                            <div class="badge badge-secondary font-bold p-3" id="dakuon-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">進階發音轉換。採用左右對照顯示，利用清音基礎快速聯想並記憶 25 個濁音。</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="dakuon-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
+                            <p class="text-xs text-gray-400 mt-1 text-right" id="dakuon-count">已掌握: 0 / 25 音</p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="dakuon.html" class="btn btn-secondary btn-sm w-full">進入特訓</a>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-error flex flex-col justify-between">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-error text-xl">❹ 濁音盲測</h2>
+                            <div class="badge badge-error font-bold p-3" id="dakuon-exam-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">最終檢定考場。無提示測驗你的濁音反射神經，徹底消滅發音混淆的弱點！</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="dakuon-exam-bar" class="progress progress-error w-full" value="0" max="100"></progress>
+                            <p class="text-xs text-gray-400 mt-1 text-right" id="dakuon-exam-count">精熟度: 0 / 25 音</p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="dakuon_exam.html" class="btn btn-error btn-sm w-full text-error-content">挑戰盲測</a>
                     </div>
                 </div>
 
@@ -137,7 +151,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 監聽登入狀態
         onAuthStateChanged(auth, async (user) => {
             const authPanel = document.getElementById('auth-panel');
             const dashboardPanel = document.getElementById('dashboard-panel');
@@ -159,69 +172,76 @@
             }
         });
 
-        // 撈取資料並分別計算百分比 (%)
+        // 撈取資料並計算 4 個進度條的百分比
         async function fetchAndRenderProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
                 
                 let learnedCount = 0;     
-                let dakuonLearnedCount = 0;
                 let examLearnedCount = 0; 
+                let dakuonLearnedCount = 0;
+                let dakuonExamLearnedCount = 0; // 新增：濁音盲測進度
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     learnedCount = (data.learned || []).length;
-                    dakuonLearnedCount = (data.dakuonLearned || []).length;
                     examLearnedCount = (data.examLearned || []).length;
+                    dakuonLearnedCount = (data.dakuonLearned || []).length;
+                    dakuonExamLearnedCount = (data.dakuonExamLearned || []).length;
                 }
 
-                // 換算百分比
+                // 計算百分比
                 const gojuonPercentage = Math.round((learnedCount / 46) * 100);
-                const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
+                const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
+                const dakuonExamPercentage = Math.round((dakuonExamLearnedCount / 25) * 100);
 
-                // 更新卡片 1 (平假名特訓) 
+                // 更新卡片 1 (清音特訓) 
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
                 document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
 
-                // 更新卡片 2 (濁音對照特訓)
+                // 更新卡片 2 (清音盲測) 
+                document.getElementById('exam-percent').textContent = `${examPercentage}%`;
+                document.getElementById('exam-bar').value = examPercentage;
+                document.getElementById('exam-count').textContent = `精熟度: ${examLearnedCount} / 46 音`;
+
+                // 更新卡片 3 (濁音特訓)
                 document.getElementById('dakuon-percent').textContent = `${dakuonPercentage}%`;
                 document.getElementById('dakuon-bar').value = dakuonPercentage;
                 document.getElementById('dakuon-count').textContent = `已掌握: ${dakuonLearnedCount} / 25 音`;
 
-                // 更新卡片 3 (地獄盲測考場) 
-                document.getElementById('exam-percent').textContent = `${examPercentage}%`;
-                document.getElementById('exam-bar').value = examPercentage;
+                // 更新卡片 4 (濁音盲測)
+                document.getElementById('dakuon-exam-percent').textContent = `${dakuonExamPercentage}%`;
+                document.getElementById('dakuon-exam-bar').value = dakuonExamPercentage;
+                document.getElementById('dakuon-exam-count').textContent = `精熟度: ${dakuonExamLearnedCount} / 25 音`;
 
             } catch (error) {
                 console.error("首頁讀取進度失敗:", error);
             }
         }
 
-        // 登入事件
         document.getElementById('btn-login').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
             if (!em || !pw) return alert('請填寫帳號與密碼');
-            try { await signInWithEmailAndPassword(auth, em, pw); } 
-            catch (error) { alert('登入失敗，請檢查帳號密碼'); }
+            try { await signInWithEmailAndPassword(auth, em, pw); } catch (error) { alert('登入失敗，請檢查帳號密碼'); }
         });
 
-        // 註冊事件
         document.getElementById('btn-register').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
             if (!em || !pw) return alert('請填寫帳號與密碼');
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { learned: [], dakuonLearned: [], examLearned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { 
+                    learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [] 
+                }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
 
-        // 登出事件
         document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
     </script>
 </body>
-</html> 
+</html>
