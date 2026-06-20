@@ -137,14 +137,12 @@
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
 
-        // 系統狀態變數
-        let learnedRomaji = [];      // 記錄所有學過的羅馬拼音 (存雲端)
-        let currentTarget = null;    // 當前正在測驗的字母物件
+        let learnedRomaji = [];      
+        let currentTarget = null;    
         
-        // 核心機制：每 5 個字切換模式
-        let gameMode = 'LEARN';      // 'LEARN' (學習模式) 或 'REVIEW' (複習模式)
-        let recentBatch = [];        // 暫存剛剛學過的 5 個新字
-        let reviewQueue = [];        // 複習模式中，等待作答的序列
+        let gameMode = 'LEARN';      
+        let recentBatch = [];        
+        let reviewQueue = [];        
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
@@ -168,11 +166,20 @@
             kanaCard: document.getElementById('kana-card')
         };
 
+        // --- 新增：陣列洗牌工具 (用來打亂複習順序) ---
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex > 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
         // --- 發音功能 ---
-        // force 參數用來強制播放 (例如在複習模式下答對時)
         function playKanaAudio(force = false) {
             if (!currentTarget) return;
-            // 如果是複習模式，且沒有傳入強制播放的指令，就直接阻擋發音
             if (gameMode === 'REVIEW' && !force) return;
 
             const utterance = new SpeechSynthesisUtterance(currentTarget.kana);
@@ -203,7 +210,6 @@
         });
 
         document.getElementById('btn-register').addEventListener('click', async () => {
-            // ... 註冊邏輯維持不變 ...
             const em = DOM.emailInput.value.trim();
             const pw = DOM.pwdInput.value;
             if (!em || !pw) return alert('請填寫帳號與密碼');
@@ -224,7 +230,6 @@
 
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
-        // 重新開始 (清空進度)
         DOM.btnReset.addEventListener('click', async () => {
             if (confirm("確定要將進度歸零重新開始嗎？這個動作無法復原喔！")) {
                 learnedRomaji = [];
@@ -262,54 +267,47 @@
         // --- 核心測驗邏輯 ---
         function nextQuestion() {
             if (gameMode === 'REVIEW') {
-                // 如果複習序列空了，代表這 5 個字都通過測驗了
                 if (reviewQueue.length === 0) {
                     gameMode = 'LEARN';
-                    recentBatch = []; // 清空暫存，準備收集下 5 個新字
-                    // 短暫提示後切換回學習模式
+                    recentBatch = []; 
                     DOM.romajiInput.value = '';
                     DOM.romajiInput.placeholder = "太棒了！準備學習新字...";
                     setTimeout(nextQuestion, 1000);
                     return;
                 }
 
-                // 準備複習模式的 UI
                 currentTarget = reviewQueue[0];
                 setupReviewUI();
 
             } else {
                 // 學習模式 (LEARN)
-                
-                // 檢查是否剛好學滿 5 個新字
                 if (recentBatch.length === 5) {
                     gameMode = 'REVIEW';
-                    reviewQueue = [...recentBatch]; // 把這 5 個字複製到複習序列中
-                    return nextQuestion(); // 重新觸發以進入複習畫面
+                    // 【重點修改】把剛學會的 5 個字打亂順序放入複習陣列
+                    reviewQueue = shuffleArray([...recentBatch]); 
+                    return nextQuestion(); 
                 }
 
                 const unlearned = gojuonData.filter(item => !learnedRomaji.includes(item.romaji));
                 
-                // 如果全部學完了
                 if (unlearned.length === 0) {
-                    // 如果還有剛學完的字沒複習，先強制複習
                     if (recentBatch.length > 0) {
                         gameMode = 'REVIEW';
-                        reviewQueue = [...recentBatch];
+                        reviewQueue = shuffleArray([...recentBatch]);
                         return nextQuestion();
                     }
-                    
-                    // 真正完成所有課程
                     setupCompleteUI();
                     return;
                 }
 
-                // 挑選一個新字
-                currentTarget = unlearned[0]; // 照五十音順序學 (或改 Math.random() 隨機)
+                // 【重點修改】隨機挑選一個還沒學過的字，而不是永遠拿第一個
+                const randomIndex = Math.floor(Math.random() * unlearned.length);
+                currentTarget = unlearned[randomIndex];
+                
                 setupLearnUI();
-                playKanaAudio(false); // 學習模式會自動發音
+                playKanaAudio(false); 
             }
 
-            // 更新畫面內容與對焦
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.currentRomaji.textContent = currentTarget.romaji;
             DOM.romajiInput.value = '';
@@ -324,9 +322,9 @@
             DOM.romajiInput.placeholder = "在此輸入...";
             
             DOM.kanaCard.classList.remove('review-mode-card');
-            DOM.currentRomaji.classList.remove('hidden'); // 顯示拼音
-            DOM.audioIcon.classList.remove('hidden');     // 顯示喇叭圖示
-            DOM.hintText.classList.remove('invisible');   // 顯示點擊發音提示
+            DOM.currentRomaji.classList.remove('hidden'); 
+            DOM.audioIcon.classList.remove('hidden');     
+            DOM.hintText.classList.remove('invisible');   
         }
 
         function setupReviewUI() {
@@ -336,9 +334,9 @@
             DOM.romajiInput.placeholder = "試試看...";
             
             DOM.kanaCard.classList.add('review-mode-card');
-            DOM.currentRomaji.classList.add('hidden'); // 隱藏拼音
-            DOM.audioIcon.classList.add('hidden');     // 隱藏喇叭圖示
-            DOM.hintText.classList.add('invisible');   // 隱藏點擊發音提示
+            DOM.currentRomaji.classList.add('hidden'); 
+            DOM.audioIcon.classList.add('hidden');     
+            DOM.hintText.classList.add('invisible');   
         }
 
         function setupCompleteUI() {
@@ -365,33 +363,26 @@
             DOM.feedbackMsg.classList.add('opacity-0'); 
 
             if (userInput === currentTarget.romaji) {
-                // 答對了！
                 DOM.kanaCard.classList.add('success-anim');
                 setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
                 if (gameMode === 'LEARN') {
-                    // 學習模式：紀錄進度，並準備下一個
                     if (!learnedRomaji.includes(currentTarget.romaji)) {
                         learnedRomaji.push(currentTarget.romaji);
-                        recentBatch.push(currentTarget); // 加進暫存區，等滿 5 個就複習
+                        recentBatch.push(currentTarget); 
                         updateProgressUI();
                         saveCloudProgress();
                     }
                     setTimeout(nextQuestion, 300); 
 
                 } else if (gameMode === 'REVIEW') {
-                    // 複習模式：答對了才給聲音回饋！
-                    playKanaAudio(true); // 強制播放聲音
-                    DOM.currentRomaji.classList.remove('hidden'); // 顯示正確答案給予成就感
-                    
-                    reviewQueue.shift(); // 從等待測驗的陣列中移除
-                    
-                    // 稍微等久一點 (800毫秒)，讓使用者聽完聲音並看清楚拼音，再切換下一題
+                    playKanaAudio(true); 
+                    DOM.currentRomaji.classList.remove('hidden'); 
+                    reviewQueue.shift(); 
                     setTimeout(nextQuestion, 800); 
                 }
 
             } else if (userInput.length >= currentTarget.romaji.length && userInput !== currentTarget.romaji) {
-                // 字數打滿了卻錯了，顯示錯誤提示
                 DOM.feedbackMsg.classList.remove('opacity-0');
             }
         });
