@@ -104,7 +104,6 @@
 
     </div>
 
-    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -115,7 +114,7 @@
             authDomain: "japanese-f3239.firebaseapp.com",
             projectId: "japanese-f3239",
             storageBucket: "japanese-f3239.firebasestorage.app",
-             messagingSenderId: "201568474978",
+            messagingSenderId: "201568474978",
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
@@ -127,7 +126,7 @@
         const dakuonData = [
             { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
             { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
-            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'ji' }, { kana: 'づ', romaji: 'zu' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'ji' }, { kana: 'づ', romaji: 'zu' }, { kana: 'де', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
             { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
             { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
         ];
@@ -139,7 +138,7 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        let dakuonExamLearned = [];
+        let dakuonExamLearned = []; // 裡面改存日文字型如 ["が", "ぢ"]
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
@@ -236,8 +235,8 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            // 過濾掉已經過關的字
-            const unlearned = dakuonData.filter(item => !dakuonExamLearned.includes(item.romaji));
+            // 【方案一修改】使用 item.kana 進行進度過濾
+            const unlearned = dakuonData.filter(item => !dakuonExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
@@ -288,14 +287,14 @@
             currentPhase = 2;
             DOM.intermissionPanel.classList.add('hidden');
             DOM.gamePanel.classList.remove('hidden');
-            
             DOM.phaseTitle.textContent = "🔥 第二階段：弱點強化特訓";
             DOM.phaseDesc.textContent = "每個字必須成功答對 2 次！";
             DOM.phaseTitle.classList.replace('text-secondary', 'text-warning');
             DOM.progressBar.classList.replace('progress-secondary', 'progress-warning');
 
             phase2Counts = {};
-            weakList.forEach(item => { phase2Counts[item.romaji] = 2; });
+            // 【方案一修改】計數器改以日文字體為主鍵
+            weakList.forEach(item => { phase2Counts[item.kana] = 2; });
             phase2TotalNeeded = weakList.length * 2;
             phase2CurrentDone = 0;
 
@@ -308,7 +307,7 @@
             DOM.progressBar.value = phase2CurrentDone;
             DOM.progressText.textContent = `${phase2CurrentDone} / ${phase2TotalNeeded}`;
 
-            let pool = Object.keys(phase2Counts).filter(romaji => phase2Counts[romaji] > 0);
+            let pool = Object.keys(phase2Counts).filter(kana => phase2Counts[kana] > 0);
 
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
@@ -316,15 +315,15 @@
                 return;
             }
 
-            let nextRomaji;
+            let nextKana;
             if (pool.length === 1) {
-                nextRomaji = pool[0];
+                nextKana = pool[0];
             } else {
-                do { nextRomaji = pool[Math.floor(Math.random() * pool.length)]; } 
-                while (currentTarget && nextRomaji === currentTarget.romaji);
+                do { nextKana = pool[Math.floor(Math.random() * pool.length)]; } 
+                while (currentTarget && nextKana === currentTarget.kana);
             }
 
-            currentTarget = weakList.find(item => item.romaji === nextRomaji);
+            currentTarget = weakList.find(item => item.kana === nextKana);
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus();
@@ -335,18 +334,19 @@
             setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
             if (currentPhase === 1) {
-                if (!dakuonExamLearned.includes(currentTarget.romaji)) {
-                    dakuonExamLearned.push(currentTarget.romaji);
+                // 【方案一修改】改將 currentTarget.kana 存檔
+                if (!dakuonExamLearned.includes(currentTarget.kana)) {
+                    dakuonExamLearned.push(currentTarget.kana);
                     saveDakuonExamProgress(); 
                 }
                 setTimeout(nextPhase1, 200);
             } else {
-                phase2Counts[currentTarget.romaji]--;
+                phase2Counts[currentTarget.kana]--;
                 phase2CurrentDone++;
                 
-                if (phase2Counts[currentTarget.romaji] === 0) {
-                    if (!dakuonExamLearned.includes(currentTarget.romaji)) {
-                        dakuonExamLearned.push(currentTarget.romaji);
+                if (phase2Counts[currentTarget.kana] === 0) {
+                    if (!dakuonExamLearned.includes(currentTarget.kana)) {
+                        dakuonExamLearned.push(currentTarget.kana);
                         saveDakuonExamProgress(); 
                     }
                 }
@@ -359,7 +359,7 @@
             setTimeout(() => DOM.kanaCard.classList.remove('error-anim'), 300);
 
             if (currentPhase === 1) {
-                if (!weakList.some(item => item.romaji === currentTarget.romaji)) {
+                if (!weakList.some(item => item.kana === currentTarget.kana)) {
                     weakList.push(currentTarget);
                 }
                 setTimeout(nextPhase1, 300);
@@ -387,7 +387,6 @@
         DOM.btnSkip.addEventListener('click', () => {
             if (currentTarget) handleWrong();
         });
-
     </script>
 </body>
 </html>
