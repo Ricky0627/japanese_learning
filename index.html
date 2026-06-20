@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的語言學習中心</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hover-card:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen">
+
+    <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl text-primary">🚀 學習總覽儀表板</a>
+        </div>
+        <div class="flex-none gap-2">
+            <div id="user-status" class="text-sm font-medium text-gray-600 mr-4">
+                讀取狀態中...
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">歡迎回來！</h1>
+            <p class="text-gray-500">請選擇你今天想要進行的特訓項目：</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <a href="gojuon.html" class="card bg-base-100 shadow-xl hover-card cursor-pointer border border-transparent hover:border-primary">
+                <div class="card-body">
+                    <h2 class="card-title text-primary text-2xl">あ平假名拼音</h2>
+                    <p class="text-gray-500 text-sm">基礎五十音打字練習，過關自動記錄進度到雲端。</p>
+                    <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-primary btn-sm">進入測驗</button>
+                    </div>
+                </div>
+            </a>
+
+            <div class="card bg-base-100 shadow-sm opacity-70 border border-dashed border-gray-300">
+                <div class="card-body">
+                    <h2 class="card-title text-gray-500 text-2xl">ア片假名拼音</h2>
+                    <p class="text-gray-400 text-sm">進階片假名打字練習。</p>
+                    <div class="card-actions justify-end mt-4">
+                        <div class="badge badge-neutral">開發中</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow-sm opacity-70 border border-dashed border-gray-300">
+                <div class="card-body">
+                    <h2 class="card-title text-gray-500 text-2xl">📝 常用單字卡</h2>
+                    <p class="text-gray-400 text-sm">N5 必備基礎單字與發音測驗。</p>
+                    <div class="card-actions justify-end mt-4">
+                        <div class="badge badge-neutral">開發中</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow-sm opacity-70 border border-dashed border-gray-300">
+                <div class="card-body">
+                    <h2 class="card-title text-gray-500 text-2xl">🎧 英文聽力/口說</h2>
+                    <p class="text-gray-400 text-sm">學術環境與日常會話聽力訓練。</p>
+                    <div class="card-actions justify-end mt-4">
+                        <div class="badge badge-neutral">開發中</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        // ⚠️ 必填：請貼上與 gojuon.html 相同的金鑰
+        const firebaseConfig = {
+          apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
+          authDomain: "japanese-f3239.firebaseapp.com",
+          projectId: "japanese-f3239",
+          storageBucket: "japanese-f3239.firebasestorage.app",
+          messagingSenderId: "201568474978",
+          appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
+          measurementId: "G-9BYMSD88D9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const statusDiv = document.getElementById('user-status');
+
+        // 檢查使用者是否已經在 gojuon.html 登入過
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                statusDiv.innerHTML = `<span class="text-primary font-bold">${user.email}</span> 已登入`;
+            } else {
+                statusDiv.innerHTML = `尚未登入 (請點擊卡片進入測驗頁面登入)`;
+            }
+        });
+    </script>
+</body>
+</html>
