@@ -130,7 +130,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 濁音與半濁音資料庫 (附帶對應的清音)
+        // 恢復原汁原味的拼音對照 (じ/ぢ 皆為 ji, ず/づ 皆為 zu)
         const dakuonData = [
             { baseKana: 'か', baseRomaji: 'ka', kana: 'が', romaji: 'ga' }, { baseKana: 'き', baseRomaji: 'ki', kana: 'ぎ', romaji: 'gi' }, { baseKana: 'く', baseRomaji: 'ku', kana: 'ぐ', romaji: 'gu' }, { baseKana: 'け', baseRomaji: 'ke', kana: 'げ', romaji: 'ge' }, { baseKana: 'こ', baseRomaji: 'ko', kana: 'ご', romaji: 'go' },
             { baseKana: 'さ', baseRomaji: 'sa', kana: 'ざ', romaji: 'za' }, { baseKana: 'し', baseRomaji: 'shi', kana: 'じ', romaji: 'ji' }, { baseKana: 'す', baseRomaji: 'su', kana: 'ず', romaji: 'zu' }, { baseKana: 'せ', baseRomaji: 'se', kana: 'ぜ', romaji: 'ze' }, { baseKana: 'そ', baseRomaji: 'so', kana: 'ぞ', romaji: 'zo' },
@@ -139,7 +139,7 @@
             { baseKana: 'は', baseRomaji: 'ha', kana: 'ぱ', romaji: 'pa' }, { baseKana: 'ひ', baseRomaji: 'hi', kana: 'ぴ', romaji: 'pi' }, { baseKana: 'ふ', baseRomaji: 'fu', kana: 'ぷ', romaji: 'pu' }, { baseKana: 'へ', baseRomaji: 'he', kana: 'ぺ', romaji: 'pe' }, { baseKana: 'ほ', baseRomaji: 'ho', kana: 'ぽ', romaji: 'po' }
         ];
 
-        let dakuonLearned = [];      
+        let dakuonLearned = []; // 裡面會改存儲日文字型如 ["が", "ざ", "ぢ"]     
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
@@ -158,8 +158,6 @@
             emailInput: document.getElementById('email'),
             pwdInput: document.getElementById('password'),
             modeTitle: document.getElementById('mode-title'),
-            
-            // 雙視圖 DOM
             learnView: document.getElementById('learn-view'),
             reviewView: document.getElementById('review-view'),
             baseKana: document.getElementById('base-kana'),
@@ -168,7 +166,6 @@
             learnRomaji: document.getElementById('learn-romaji'),
             reviewKana: document.getElementById('review-kana'),
             reviewRomaji: document.getElementById('review-romaji'),
-            
             audioIcon: document.getElementById('audio-icon'),
             hintBtn: document.getElementById('hint-btn'),
             hintText: document.getElementById('hint-text'),
@@ -313,12 +310,13 @@
                     return nextQuestion(); 
                 }
 
+                // 【方案一核心修改】改以 item.kana 過濾庫存
                 const unlearned = dakuonData.filter(item => 
-                    !dakuonLearned.includes(item.romaji) && 
-                    !recentBatch.some(r => r.romaji === item.romaji)
+                    !dakuonLearned.includes(item.kana) && 
+                    !recentBatch.some(r => r.kana === item.kana)
                 );
                 
-                const availableNew = unlearned.filter(item => !penaltyQueue.includes(item.romaji));
+                const availableNew = unlearned.filter(item => !penaltyQueue.includes(item.kana));
                 const poolToDrawFrom = availableNew.length > 0 ? availableNew : unlearned;
 
                 if (poolToDrawFrom.length === 0) {
@@ -338,8 +336,7 @@
                 playKanaAudio(false); 
             }
 
-            // 更新畫面資料
-            DOM.baseKana.textContent = currentTarget.baseKana;
+            DOM.baseKana.textContent = currentTarget.kana;
             DOM.baseRomaji.textContent = currentTarget.baseRomaji;
             DOM.learnKana.textContent = currentTarget.kana;
             DOM.learnRomaji.textContent = currentTarget.romaji;
@@ -355,11 +352,9 @@
             DOM.modeTitle.className = "text-2xl font-bold text-primary mb-4";
             DOM.inputLabel.textContent = "請輸入右邊的濁音拼音！";
             DOM.romajiInput.placeholder = "在此輸入...";
-            
             DOM.kanaCard.classList.remove('review-mode-card');
             DOM.learnView.classList.remove('hidden');
             DOM.reviewView.classList.add('hidden');
-            
             DOM.audioIcon.classList.remove('hidden');     
             DOM.hintText.classList.remove('hidden');   
         }
@@ -369,12 +364,10 @@
             DOM.modeTitle.className = "text-2xl font-bold text-warning mb-4";
             DOM.inputLabel.textContent = "請憑記憶打出正確的濁音拼音！";
             DOM.romajiInput.placeholder = "試試看...";
-            
             DOM.kanaCard.classList.add('review-mode-card');
             DOM.learnView.classList.add('hidden');
             DOM.reviewView.classList.remove('hidden');
             DOM.reviewRomaji.classList.add('hidden');
-            
             DOM.audioIcon.classList.add('hidden');     
             DOM.hintText.classList.add('hidden');   
         }
@@ -402,7 +395,6 @@
             if (!currentTarget) return;
             
             const userInput = e.target.value.trim().toLowerCase();
-            
             DOM.feedbackMsg.classList.add('opacity-0'); 
             DOM.feedbackMsg.classList.remove('text-warning');
             DOM.feedbackMsg.classList.add('text-error');
@@ -411,12 +403,11 @@
             if (userInput === currentTarget.romaji) {
                 clearTimeout(hintTimer);
                 DOM.hintBtn.classList.add('hidden');
-
                 DOM.kanaCard.classList.add('success-anim');
                 setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
                 if (gameMode === 'LEARN') {
-                    if (!recentBatch.includes(currentTarget)) {
+                    if (!recentBatch.some(r => r.kana === currentTarget.kana)) {
                         recentBatch.push(currentTarget); 
                     }
                     setTimeout(nextQuestion, 300); 
@@ -426,15 +417,16 @@
                     DOM.reviewRomaji.classList.remove('hidden'); 
 
                     if (!usedHint) {
-                        if (!dakuonLearned.includes(currentTarget.romaji)) {
-                            dakuonLearned.push(currentTarget.romaji);
-                            penaltyQueue = penaltyQueue.filter(r => r !== currentTarget.romaji);
+                        // 【方案一核心修改】改將 currentTarget.kana 推進雲端
+                        if (!dakuonLearned.includes(currentTarget.kana)) {
+                            dakuonLearned.push(currentTarget.kana);
+                            penaltyQueue = penaltyQueue.filter(k => k !== currentTarget.kana);
                             updateProgressUI();
                             saveCloudProgress();
                         }
                     } else {
-                        if (!penaltyQueue.includes(currentTarget.romaji)) {
-                            penaltyQueue.push(currentTarget.romaji);
+                        if (!penaltyQueue.includes(currentTarget.kana)) {
+                            penaltyQueue.push(currentTarget.kana);
                         }
                         DOM.feedbackMsg.textContent = "這次靠提示答對，將移至最後面重新學習！";
                         DOM.feedbackMsg.classList.remove('text-error');
