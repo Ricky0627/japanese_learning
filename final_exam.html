@@ -51,6 +51,8 @@
         <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center relative">
                 
+                <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
+
                 <h2 id="phase-title" class="text-2xl font-bold text-accent mb-2">👾 終極大魔王：清濁音綜合盲測</h2>
                 <p id="phase-desc" class="text-sm text-gray-500 mb-4">共 71 音無差別連環攻擊。不知道可按 Enter 或點擊跳過。</p>
 
@@ -102,14 +104,12 @@
 
     </div>
 
+    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
@@ -119,13 +119,11 @@
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
-        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 終極題庫 (清音46 + 濁音25 = 71)
         const finalData = [
             { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
@@ -151,8 +149,6 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        
-        // 專門紀錄「終極盲測」過關的雲端進度
         let finalExamLearned = [];
 
         const DOM = {
@@ -162,6 +158,7 @@
             completePanel: document.getElementById('complete-panel'),
             displayEmail: document.getElementById('display-email'),
             btnLogout: document.getElementById('btn-logout'),
+            btnReset: document.getElementById('btn-reset'),
             phaseTitle: document.getElementById('phase-title'),
             phaseDesc: document.getElementById('phase-desc'),
             kanaCard: document.getElementById('kana-card'),
@@ -210,7 +207,14 @@
 
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
-        // 讀取終極盲測進度
+        DOM.btnReset.addEventListener('click', async () => {
+            if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
+                finalExamLearned = [];
+                await saveFinalExamProgress();
+                window.location.reload();
+            }
+        });
+
         async function loadFinalExamProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -220,7 +224,6 @@
             } catch (error) { console.error("載入失敗", error); }
         }
 
-        // 儲存終極盲測進度
         async function saveFinalExamProgress() {
             const user = auth.currentUser;
             if (!user) return;
@@ -243,16 +246,25 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            phase1Queue = shuffleArray(finalData); 
+            // 過濾掉已經過關的字
+            const unlearned = finalData.filter(item => !finalExamLearned.includes(item.romaji));
+            
+            if (unlearned.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            phase1Queue = shuffleArray(unlearned); 
             nextPhase1();
         }
 
         function nextPhase1() {
+            const count = finalExamLearned.length;
             const total = finalData.length;
-            const done = total - phase1Queue.length;
             DOM.progressBar.max = total;
-            DOM.progressBar.value = done;
-            DOM.progressText.textContent = `${done} / ${total}`;
+            DOM.progressBar.value = count;
+            DOM.progressText.textContent = `${count} / ${total}`;
 
             if (phase1Queue.length === 0) {
                 endPhase1();
@@ -341,6 +353,13 @@
             } else {
                 phase2Counts[currentTarget.romaji]--;
                 phase2CurrentDone++;
+                
+                if (phase2Counts[currentTarget.romaji] === 0) {
+                    if (!finalExamLearned.includes(currentTarget.romaji)) {
+                        finalExamLearned.push(currentTarget.romaji);
+                        saveFinalExamProgress(); 
+                    }
+                }
                 setTimeout(nextPhase2, 200);
             }
         }
@@ -381,4 +400,4 @@
 
     </script>
 </body>
-</html>
+</html>    
