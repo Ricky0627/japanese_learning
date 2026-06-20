@@ -51,6 +51,8 @@
         <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center relative">
                 
+                <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
+
                 <h2 id="phase-title" class="text-2xl font-bold text-secondary mb-2">🔥 濁音第一階段：全範圍盲測</h2>
                 <p id="phase-desc" class="text-sm text-gray-500 mb-4">打出正確拼音即過關。不知道可按 Enter 或點擊跳過。</p>
 
@@ -102,30 +104,26 @@
 
     </div>
 
+    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
             projectId: "japanese-f3239",
             storageBucket: "japanese-f3239.firebasestorage.app",
-            messagingSenderId: "201568474978",
+             messagingSenderId: "201568474978",
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
-        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 濁音題庫 (25音)
         const dakuonData = [
             { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
             { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
@@ -141,8 +139,6 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        
-        // 專門紀錄「濁音盲測」過關的雲端進度
         let dakuonExamLearned = [];
 
         const DOM = {
@@ -152,6 +148,7 @@
             completePanel: document.getElementById('complete-panel'),
             displayEmail: document.getElementById('display-email'),
             btnLogout: document.getElementById('btn-logout'),
+            btnReset: document.getElementById('btn-reset'),
             phaseTitle: document.getElementById('phase-title'),
             phaseDesc: document.getElementById('phase-desc'),
             kanaCard: document.getElementById('kana-card'),
@@ -200,7 +197,14 @@
 
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
-        // 讀取濁音盲測進度
+        DOM.btnReset.addEventListener('click', async () => {
+            if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
+                dakuonExamLearned = [];
+                await saveDakuonExamProgress();
+                window.location.reload();
+            }
+        });
+
         async function loadDakuonExamProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -210,7 +214,6 @@
             } catch (error) { console.error("載入失敗", error); }
         }
 
-        // 儲存濁音盲測進度
         async function saveDakuonExamProgress() {
             const user = auth.currentUser;
             if (!user) return;
@@ -233,16 +236,25 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            phase1Queue = shuffleArray(dakuonData); 
+            // 過濾掉已經過關的字
+            const unlearned = dakuonData.filter(item => !dakuonExamLearned.includes(item.romaji));
+            
+            if (unlearned.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            phase1Queue = shuffleArray(unlearned); 
             nextPhase1();
         }
 
         function nextPhase1() {
+            const count = dakuonExamLearned.length;
             const total = dakuonData.length;
-            const done = total - phase1Queue.length;
             DOM.progressBar.max = total;
-            DOM.progressBar.value = done;
-            DOM.progressText.textContent = `${done} / ${total}`;
+            DOM.progressBar.value = count;
+            DOM.progressText.textContent = `${count} / ${total}`;
 
             if (phase1Queue.length === 0) {
                 endPhase1();
@@ -331,6 +343,13 @@
             } else {
                 phase2Counts[currentTarget.romaji]--;
                 phase2CurrentDone++;
+                
+                if (phase2Counts[currentTarget.romaji] === 0) {
+                    if (!dakuonExamLearned.includes(currentTarget.romaji)) {
+                        dakuonExamLearned.push(currentTarget.romaji);
+                        saveDakuonExamProgress(); 
+                    }
+                }
                 setTimeout(nextPhase2, 200);
             }
         }
