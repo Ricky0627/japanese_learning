@@ -104,7 +104,6 @@
 
     </div>
 
-    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -131,7 +130,7 @@
             { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
             { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
             { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
-            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
+            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'мо', romaji: 'mo' },
             { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
             { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' },
@@ -149,7 +148,7 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        let finalExamLearned = [];
+        let finalExamLearned = []; // 改存 ["あ", "が", "ぢ"]
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
@@ -246,8 +245,8 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            // 過濾掉已經過關的字
-            const unlearned = finalData.filter(item => !finalExamLearned.includes(item.romaji));
+            // 【方案一修改】使用 item.kana 進行進度過濾
+            const unlearned = finalData.filter(item => !finalExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
@@ -298,14 +297,14 @@
             currentPhase = 2;
             DOM.intermissionPanel.classList.add('hidden');
             DOM.gamePanel.classList.remove('hidden');
-            
             DOM.phaseTitle.textContent = "🔥 第二階段：弱點強化特訓";
             DOM.phaseDesc.textContent = "每個字必須成功答對 2 次！";
             DOM.phaseTitle.classList.replace('text-accent', 'text-warning');
             DOM.progressBar.classList.replace('progress-accent', 'progress-warning');
 
             phase2Counts = {};
-            weakList.forEach(item => { phase2Counts[item.romaji] = 2; });
+            // 【方案一修改】計數器以日文字體為主鍵
+            weakList.forEach(item => { phase2Counts[item.kana] = 2; });
             phase2TotalNeeded = weakList.length * 2;
             phase2CurrentDone = 0;
 
@@ -318,7 +317,7 @@
             DOM.progressBar.value = phase2CurrentDone;
             DOM.progressText.textContent = `${phase2CurrentDone} / ${phase2TotalNeeded}`;
 
-            let pool = Object.keys(phase2Counts).filter(romaji => phase2Counts[romaji] > 0);
+            let pool = Object.keys(phase2Counts).filter(kana => phase2Counts[kana] > 0);
 
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
@@ -326,15 +325,15 @@
                 return;
             }
 
-            let nextRomaji;
+            let nextKana;
             if (pool.length === 1) {
-                nextRomaji = pool[0];
+                nextKana = pool[0];
             } else {
-                do { nextRomaji = pool[Math.floor(Math.random() * pool.length)]; } 
-                while (currentTarget && nextRomaji === currentTarget.romaji);
+                do { nextKana = pool[Math.floor(Math.random() * pool.length)]; } 
+                while (currentTarget && nextKana === currentTarget.kana);
             }
 
-            currentTarget = weakList.find(item => item.romaji === nextRomaji);
+            currentTarget = weakList.find(item => item.kana === nextKana);
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus();
@@ -345,18 +344,19 @@
             setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
             if (currentPhase === 1) {
-                if (!finalExamLearned.includes(currentTarget.romaji)) {
-                    finalExamLearned.push(currentTarget.romaji);
+                // 【方案一修改】改將 currentTarget.kana 存檔
+                if (!finalExamLearned.includes(currentTarget.kana)) {
+                    finalExamLearned.push(currentTarget.kana);
                     saveFinalExamProgress(); 
                 }
                 setTimeout(nextPhase1, 200);
             } else {
-                phase2Counts[currentTarget.romaji]--;
+                phase2Counts[currentTarget.kana]--;
                 phase2CurrentDone++;
                 
-                if (phase2Counts[currentTarget.romaji] === 0) {
-                    if (!finalExamLearned.includes(currentTarget.romaji)) {
-                        finalExamLearned.push(currentTarget.romaji);
+                if (phase2Counts[currentTarget.kana] === 0) {
+                    if (!finalExamLearned.includes(currentTarget.kana)) {
+                        finalExamLearned.push(currentTarget.kana);
                         saveFinalExamProgress(); 
                     }
                 }
@@ -369,7 +369,7 @@
             setTimeout(() => DOM.kanaCard.classList.remove('error-anim'), 300);
 
             if (currentPhase === 1) {
-                if (!weakList.some(item => item.romaji === currentTarget.romaji)) {
+                if (!weakList.some(item => item.kana === currentTarget.kana)) {
                     weakList.push(currentTarget);
                 }
                 setTimeout(nextPhase1, 300);
@@ -397,7 +397,6 @@
         DOM.btnSkip.addEventListener('click', () => {
             if (currentTarget) handleWrong();
         });
-
     </script>
 </body>
-</html>    
+</html>
