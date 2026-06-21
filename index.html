@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的五十音學習中心</title>
+    <!-- 引入 Tailwind CSS 與 DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -13,6 +14,7 @@
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col items-center">
 
+    <!-- 頂部導覽列 -->
     <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50 w-full px-6 flex justify-between">
         <a class="text-xl font-bold text-primary">🚀 五十音學習控制台</a>
         <div class="flex items-center gap-2">
@@ -21,8 +23,10 @@
         </div>
     </div>
 
+    <!-- 主要內容區 -->
     <div class="container mx-auto px-4 py-8 max-w-[1200px] w-full space-y-8">
         
+        <!-- 登入面板 -->
         <div id="auth-panel" class="card bg-base-100 shadow-xl max-w-md mx-auto">
             <div class="card-body">
                 <h2 class="card-title text-2xl mb-2">歡迎來到日文特訓網</h2>
@@ -43,14 +47,17 @@
             </div>
         </div>
 
+        <!-- 登入後顯示的進度牆 -->
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">按照順序完成 5 階段特訓，精通所有日文基礎發音！</p>
+                <p class="text-gray-500">按照順序完成全套 6 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
+            <!-- 功能卡片網格 (完美 3 欄式，總共 6 張卡片剛好排兩列) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
+                <!-- 卡片 1：平假名特訓 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-primary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -69,6 +76,7 @@
                     </div>
                 </div>
 
+                <!-- 卡片 2：清音盲測考場 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-warning flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -87,6 +95,7 @@
                     </div>
                 </div>
 
+                <!-- 卡片 3：濁音對照特訓 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -105,6 +114,7 @@
                     </div>
                 </div>
 
+                <!-- 卡片 4：濁音盲測考場 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-error flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -123,13 +133,14 @@
                     </div>
                 </div>
 
-                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between md:col-span-2 lg:col-span-1">
+                <!-- 卡片 5：終極綜合盲測 -->
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-accent text-xl">❺ 終極綜合盲測</h2>
+                            <h2 class="card-title text-accent text-xl">❺ 終極魔王盲測</h2>
                             <div class="badge badge-accent font-bold p-3" id="final-exam-percent">0%</div>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸五十音！</p>
+                        <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸聽寫！</p>
                         
                         <div class="w-full mt-6">
                             <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
@@ -137,7 +148,26 @@
                         </div>
                     </div>
                     <div class="px-6 pb-6 text-right">
-                        <a href="final_exam.html" class="btn btn-accent btn-sm w-full text-accent-content">挑戰最終魔王</a>
+                        <a href="final_exam.html" class="btn btn-accent btn-sm w-full text-accent-content">挑戰魔王</a>
+                    </div>
+                </div>
+
+                <!-- 卡片 6：逆向尋字測驗 (全新模組) -->
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-info flex flex-col justify-between">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-info text-xl">❻ 逆向尋字測驗</h2>
+                            <div class="badge badge-info text-white font-bold p-3" id="reverse-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">鷹眼特訓模式。看羅馬拼音在 46 個亂序假名中光速找出正確字元，徹底強化視覺記憶！</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="reverse-bar" class="progress progress-info w-full" value="0" max="100"></progress>
+                            <p class="text-xs text-gray-400 mt-1 text-right" id="reverse-count">尋字力: 0 / 46 音</p>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="reverse.html" class="btn btn-info text-white btn-sm w-full">開始尋字</a>
                     </div>
                 </div>
 
@@ -146,6 +176,7 @@
 
     </div>
 
+    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -190,7 +221,7 @@
             }
         });
 
-        // 撈取資料並計算 5 個進度條的百分比
+        // 撈取資料並計算 6 個進度條的百分比
         async function fetchAndRenderProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -199,7 +230,8 @@
                 let examLearnedCount = 0; 
                 let dakuonLearnedCount = 0;
                 let dakuonExamLearnedCount = 0;
-                let finalExamLearnedCount = 0; // 新增：終極盲測進度
+                let finalExamLearnedCount = 0;
+                let reverseLearnedCount = 0; // 新增：逆向測驗進度
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -208,6 +240,7 @@
                     dakuonLearnedCount = (data.dakuonLearned || []).length;
                     dakuonExamLearnedCount = (data.dakuonExamLearned || []).length;
                     finalExamLearnedCount = (data.finalExamLearned || []).length;
+                    reverseLearnedCount = (data.reverseLearned || []).length;
                 }
 
                 // 計算百分比
@@ -215,32 +248,33 @@
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
                 const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
                 const dakuonExamPercentage = Math.round((dakuonExamLearnedCount / 25) * 100);
-                const finalExamPercentage = Math.round((finalExamLearnedCount / 71) * 100); // 總數 71
+                const finalExamPercentage = Math.round((finalExamLearnedCount / 71) * 100); 
+                const reversePercentage = Math.round((reverseLearnedCount / 46) * 100); // 總數 46
 
-                // 更新卡片 1 (清音特訓) 
+                // 1
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
                 document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
-
-                // 更新卡片 2 (清音盲測) 
+                // 2
                 document.getElementById('exam-percent').textContent = `${examPercentage}%`;
                 document.getElementById('exam-bar').value = examPercentage;
                 document.getElementById('exam-count').textContent = `精熟度: ${examLearnedCount} / 46 音`;
-
-                // 更新卡片 3 (濁音特訓)
+                // 3
                 document.getElementById('dakuon-percent').textContent = `${dakuonPercentage}%`;
                 document.getElementById('dakuon-bar').value = dakuonPercentage;
                 document.getElementById('dakuon-count').textContent = `已掌握: ${dakuonLearnedCount} / 25 音`;
-
-                // 更新卡片 4 (濁音盲測)
+                // 4
                 document.getElementById('dakuon-exam-percent').textContent = `${dakuonExamPercentage}%`;
                 document.getElementById('dakuon-exam-bar').value = dakuonExamPercentage;
                 document.getElementById('dakuon-exam-count').textContent = `精熟度: ${dakuonExamLearnedCount} / 25 音`;
-
-                // 更新卡片 5 (終極綜合盲測)
+                // 5
                 document.getElementById('final-exam-percent').textContent = `${finalExamPercentage}%`;
                 document.getElementById('final-exam-bar').value = finalExamPercentage;
                 document.getElementById('final-exam-count').textContent = `精熟度: ${finalExamLearnedCount} / 71 音`;
+                // 6 (新)
+                document.getElementById('reverse-percent').textContent = `${reversePercentage}%`;
+                document.getElementById('reverse-bar').value = reversePercentage;
+                document.getElementById('reverse-count').textContent = `尋字力: ${reverseLearnedCount} / 46 音`;
 
             } catch (error) {
                 console.error("首頁讀取進度失敗:", error);
@@ -261,7 +295,7 @@
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
                 await setDoc(doc(db, "users_progress", cred.user.uid), { 
-                    learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [], finalExamLearned: [] 
+                    learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [], finalExamLearned: [], reverseLearned: [] 
                 }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
