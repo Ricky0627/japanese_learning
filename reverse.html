@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>逆向尋字測驗</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .error-anim { animation: shake 0.4s ease-in-out; background-color: oklch(var(--er) / 0.2) !important; border-color: oklch(var(--er)) !important; color: oklch(var(--er-content)) !important;}
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        /* 讓按鍵在點擊時有凹陷的真實回饋感 */
+        .kana-btn:active { transform: scale(0.9); transition: transform 0.1s; }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-4xl w-full space-y-6">
+        
+        <!-- 頂部導覽 -->
+        <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    回首頁
+                </a>
+            </div>
+            <div id="user-status" class="text-sm">
+                <span id="display-email" class="mr-2 text-gray-500 font-bold">載入中...</span>
+                <button id="btn-logout" class="btn btn-xs btn-outline btn-error hidden">登出</button>
+            </div>
+        </div>
+
+        <!-- 遊戲主畫面 -->
+        <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center relative">
+                
+                <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
+
+                <h2 id="phase-title" class="text-2xl font-bold text-info mb-2">🔎 逆向尋字測驗</h2>
+                <p id="phase-desc" class="text-sm text-gray-500 mb-4">看上方的羅馬拼音，從下方找出對應的日文字！</p>
+
+                <!-- 進度條 -->
+                <div class="w-full mb-6 max-w-lg">
+                    <div class="flex justify-between text-sm mb-1 font-bold">
+                        <span>測驗進度</span>
+                        <span id="progress-text" class="text-info">0 / 46</span>
+                    </div>
+                    <progress id="progress-bar" class="progress progress-info w-full" value="0" max="46"></progress>
+                    <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
+                </div>
+
+                <!-- 題目顯示區 -->
+                <div class="bg-info/10 border-2 border-info rounded-2xl w-full max-w-sm h-32 flex flex-col items-center justify-center shadow-inner mb-6">
+                    <h2 id="current-romaji" class="text-7xl font-black text-info tracking-wider uppercase select-none">KA</h2>
+                </div>
+
+                <!-- 46個亂數排列的按鍵區 (Flex Wrap 讓它自動適應各種螢幕大小) -->
+                <div id="button-grid" class="flex flex-wrap justify-center gap-2 sm:gap-3 w-full">
+                    <!-- 按鈕會由 JavaScript 動態生成在這裡 -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 結業畫面 -->
+        <div id="complete-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">🦅</div>
+                <h2 class="text-3xl font-bold text-info mb-2">鷹眼尋字大師！</h2>
+                <p class="text-gray-500 mb-8">你的大腦已經將發音與文字的形狀完美連結，無懈可擊！</p>
+                <a href="index.html" class="btn btn-info text-white">回首頁看總成績</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // ==========================================
+        // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
+            authDomain: "japanese-f3239.firebaseapp.com",
+            projectId: "japanese-f3239",
+            storageBucket: "japanese-f3239.firebasestorage.app",
+            messagingSenderId: "201568474978",
+            appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
+            measurementId: "G-9BYMSD88D9"
+        };
+        // ==========================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 基礎 46 清音
+        const gojuonData = [
+            { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
+            { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
+            { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'shi' }, { kana: 'す', romaji: 'su' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
+            { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
+            { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
+            { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
+            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
+            { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
+            { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
+            { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
+        ];
+
+        let reverseLearned = []; 
+        let questionQueue = [];
+        let currentTarget = null;
+        let hasGuessedWrongThisRound = false; // 紀錄這題是否有猜錯過
+
+        const DOM = {
+            gamePanel: document.getElementById('game-panel'),
+            completePanel: document.getElementById('complete-panel'),
+            displayEmail: document.getElementById('display-email'),
+            btnLogout: document.getElementById('btn-logout'),
+            btnReset: document.getElementById('btn-reset'),
+            currentRomaji: document.getElementById('current-romaji'),
+            buttonGrid: document.getElementById('button-grid'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            syncStatus: document.getElementById('cloud-sync-status')
+        };
+
+        // --- Firebase 登入與資料存取 ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                DOM.gamePanel.classList.remove('hidden');
+                DOM.displayEmail.textContent = user.email;
+                DOM.btnLogout.classList.remove('hidden');
+                
+                await loadProgress(user.uid);
+                initGame();
+            } else {
+                window.location.href = 'index.html'; // 沒登入直接踢回首頁
+            }
+        });
+
+        DOM.btnLogout.addEventListener('click', () => signOut(auth));
+
+        DOM.btnReset.addEventListener('click', async () => {
+            if (confirm("確定要將測驗進度歸零重新開始嗎？")) {
+                reverseLearned = [];
+                await saveProgress();
+                window.location.reload();
+            }
+        });
+
+        async function loadProgress(uid) {
+            try {
+                const docSnap = await getDoc(doc(db, "users_progress", uid));
+                if (docSnap.exists() && docSnap.data().reverseLearned) {
+                    reverseLearned = docSnap.data().reverseLearned;
+                }
+            } catch (error) { console.error("載入失敗", error); }
+        }
+
+        async function saveProgress() {
+            const user = auth.currentUser;
+            if (!user) return;
+            DOM.syncStatus.textContent = "儲存中...";
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), { reverseLearned: reverseLearned }, { merge: true });
+                DOM.syncStatus.textContent = "已與雲端同步 ✓";
+            } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
+        }
+
+        // --- 遊戲邏輯 ---
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function generateButtonGrid() {
+            DOM.buttonGrid.innerHTML = '';
+            // 每次載入畫面時，將 46 個按鍵順序完全打亂
+            const shuffledButtons = shuffleArray([...gojuonData]);
+            
+            shuffledButtons.forEach(item => {
+                const btn = document.createElement('button');
+                // 按鍵樣式設定
+                btn.className = 'btn btn-outline btn-lg w-14 h-14 sm:w-16 sm:h-16 text-2xl font-normal kana-btn transition-colors';
+                btn.textContent = item.kana;
+                btn.dataset.kana = item.kana;
+                
+                // 點擊判定邏輯
+                btn.addEventListener('click', () => handleGuess(item.kana, btn));
+                DOM.buttonGrid.appendChild(btn);
+            });
+        }
+
+        function initGame() {
+            // 過濾掉已經在雲端過關的字
+            const unlearned = gojuonData.filter(item => !reverseLearned.includes(item.romaji));
+            
+            if (unlearned.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            // 打亂出題順序
+            questionQueue = shuffleArray(unlearned); 
+            generateButtonGrid(); // 畫出 46 個亂序按鍵
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            // 更新進度條
+            const count = reverseLearned.length;
+            const total = gojuonData.length;
+            DOM.progressBar.max = total;
+            DOM.progressBar.value = count;
+            DOM.progressText.textContent = `${count} / ${total}`;
+
+            if (questionQueue.length === 0) {
+                // 如果隊列沒題了，表示所有難關都克服了
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            // 換下一題，並重置猜錯狀態
+            hasGuessedWrongThisRound = false;
+            currentTarget = questionQueue.pop();
+            DOM.currentRomaji.textContent = currentTarget.romaji.toUpperCase();
+        }
+
+        function handleGuess(clickedKana, btnElement) {
+            // 如果點的是正確的假名
+            if (clickedKana === currentTarget.kana) {
+                
+                // 閃綠燈
+                btnElement.classList.replace('btn-outline', 'btn-info');
+                btnElement.classList.add('text-white');
+
+                if (!hasGuessedWrongThisRound) {
+                    // 如果是「一發命中」，存入雲端！
+                    if (!reverseLearned.includes(currentTarget.romaji)) {
+                        reverseLearned.push(currentTarget.romaji);
+                        saveProgress();
+                    }
+                } else {
+                    // 如果剛才有猜錯過，把這題「偷塞回題庫最底下」，待會還要再考一次！
+                    questionQueue.unshift(currentTarget);
+                }
+
+                // 稍微延遲後進入下一題
+                setTimeout(() => {
+                    btnElement.classList.replace('btn-info', 'btn-outline');
+                    btnElement.classList.remove('text-white');
+                    nextQuestion();
+                }, 400);
+
+            } else {
+                // 點錯了！
+                hasGuessedWrongThisRound = true; // 標記這題已經髒掉了，就算稍後點對也不給過
+                
+                // 閃紅燈與震動
+                btnElement.classList.add('error-anim');
+                setTimeout(() => {
+                    btnElement.classList.remove('error-anim');
+                }, 400);
+            }
+        }
+
+    </script>
+</body>
+</html>
