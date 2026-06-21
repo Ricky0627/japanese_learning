@@ -55,7 +55,7 @@
                     <h2 id="current-romaji" class="text-7xl font-black text-info tracking-wider uppercase select-none">KA</h2>
                 </div>
 
-                <!-- 46個亂數排列的按鍵區 (Flex Wrap 讓它自動適應各種螢幕大小) -->
+                <!-- 按鍵區 -->
                 <div id="button-grid" class="flex flex-wrap justify-center gap-2 sm:gap-3 w-full">
                     <!-- 按鈕會由 JavaScript 動態生成在這裡 -->
                 </div>
@@ -115,7 +115,7 @@
         let reverseLearned = []; 
         let questionQueue = [];
         let currentTarget = null;
-        let hasGuessedWrongThisRound = false; // 紀錄這題是否有猜錯過
+        let hasGuessedWrongThisRound = false; 
 
         const DOM = {
             gamePanel: document.getElementById('game-panel'),
@@ -140,7 +140,7 @@
                 await loadProgress(user.uid);
                 initGame();
             } else {
-                window.location.href = 'index.html'; // 沒登入直接踢回首頁
+                window.location.href = 'index.html'; 
             }
         });
 
@@ -185,24 +185,23 @@
 
         function generateButtonGrid() {
             DOM.buttonGrid.innerHTML = '';
-            // 每次載入畫面時，將 46 個按鍵順序完全打亂
+            
+            // 【核心設計】：在畫面載入的這一刻打亂陣列，
+            // 生成後按鈕的位置就會在整場遊戲中「保持固定」，直到使用者重整網頁。
             const shuffledButtons = shuffleArray([...gojuonData]);
             
             shuffledButtons.forEach(item => {
                 const btn = document.createElement('button');
-                // 按鍵樣式設定
                 btn.className = 'btn btn-outline btn-lg w-14 h-14 sm:w-16 sm:h-16 text-2xl font-normal kana-btn transition-colors';
                 btn.textContent = item.kana;
                 btn.dataset.kana = item.kana;
                 
-                // 點擊判定邏輯
                 btn.addEventListener('click', () => handleGuess(item.kana, btn));
                 DOM.buttonGrid.appendChild(btn);
             });
         }
 
         function initGame() {
-            // 過濾掉已經在雲端過關的字
             const unlearned = gojuonData.filter(item => !reverseLearned.includes(item.romaji));
             
             if (unlearned.length === 0) {
@@ -211,14 +210,15 @@
                 return;
             }
 
-            // 打亂出題順序
+            // 出題順序隨機打亂
             questionQueue = shuffleArray(unlearned); 
-            generateButtonGrid(); // 畫出 46 個亂序按鍵
+            
+            // 呼叫一次畫按鍵的功能（畫完就不會再變動了）
+            generateButtonGrid(); 
             nextQuestion();
         }
 
         function nextQuestion() {
-            // 更新進度條
             const count = reverseLearned.length;
             const total = gojuonData.length;
             DOM.progressBar.max = total;
@@ -226,34 +226,28 @@
             DOM.progressText.textContent = `${count} / ${total}`;
 
             if (questionQueue.length === 0) {
-                // 如果隊列沒題了，表示所有難關都克服了
                 DOM.gamePanel.classList.add('hidden');
                 DOM.completePanel.classList.remove('hidden');
                 return;
             }
 
-            // 換下一題，並重置猜錯狀態
             hasGuessedWrongThisRound = false;
             currentTarget = questionQueue.pop();
             DOM.currentRomaji.textContent = currentTarget.romaji.toUpperCase();
         }
 
         function handleGuess(clickedKana, btnElement) {
-            // 如果點的是正確的假名
             if (clickedKana === currentTarget.kana) {
                 
-                // 閃綠燈
                 btnElement.classList.replace('btn-outline', 'btn-info');
                 btnElement.classList.add('text-white');
 
                 if (!hasGuessedWrongThisRound) {
-                    // 如果是「一發命中」，存入雲端！
                     if (!reverseLearned.includes(currentTarget.romaji)) {
                         reverseLearned.push(currentTarget.romaji);
                         saveProgress();
                     }
                 } else {
-                    // 如果剛才有猜錯過，把這題「偷塞回題庫最底下」，待會還要再考一次！
                     questionQueue.unshift(currentTarget);
                 }
 
@@ -265,10 +259,8 @@
                 }, 400);
 
             } else {
-                // 點錯了！
-                hasGuessedWrongThisRound = true; // 標記這題已經髒掉了，就算稍後點對也不給過
+                hasGuessedWrongThisRound = true; 
                 
-                // 閃紅燈與震動
                 btnElement.classList.add('error-anim');
                 setTimeout(() => {
                     btnElement.classList.remove('error-anim');
