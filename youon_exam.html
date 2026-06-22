@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拗音地獄盲測考場</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .success-anim { animation: pop 0.3s ease-in-out; background-color: oklch(var(--su) / 0.2) !important; border-color: oklch(var(--su)) !important; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .error-anim { animation: shake 0.4s ease-in-out; background-color: oklch(var(--er) / 0.2) !important; border-color: oklch(var(--er)) !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-2xl w-full space-y-6">
+        
+        <!-- 頂部導覽 -->
+        <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                    回首頁
+                </a>
+            </div>
+            <div id="user-status" class="text-sm">
+                <span id="display-email" class="mr-2 text-gray-500 font-bold">載入中...</span>
+                <button id="btn-logout" class="btn btn-xs btn-outline btn-error hidden">登出</button>
+            </div>
+        </div>
+
+        <!-- 登入面板 -->
+        <div id="auth-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body">
+                <h2 class="card-title mb-2">請先登入以記錄測驗成績</h2>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">電子信箱</span></label>
+                    <input type="email" id="email" placeholder="輸入信箱..." class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full mt-2">
+                    <label class="label"><span class="label-text">密碼</span></label>
+                    <input type="password" id="password" placeholder="輸入密碼..." class="input input-bordered w-full" />
+                </div>
+                <div class="card-actions justify-end mt-6">
+                    <button id="btn-register" class="btn btn-outline btn-secondary">建立新帳號</button>
+                    <button id="btn-login" class="btn btn-primary">登入</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遊戲主畫面 -->
+        <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center relative">
+                
+                <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
+
+                <h2 id="phase-title" class="text-2xl font-bold text-success mb-2">🔥 拗音第一階段：全範圍盲測</h2>
+                <p id="phase-desc" class="text-sm text-gray-500 mb-4">打出正確拼音即過關。不知道可按 Enter 或點擊跳過。</p>
+
+                <!-- 進度條 -->
+                <div class="w-full mb-6">
+                    <div class="flex justify-between text-sm mb-1 font-bold">
+                        <span>測驗進度</span>
+                        <span id="progress-text" class="text-success">0 / 36</span>
+                    </div>
+                    <progress id="progress-bar" class="progress progress-success w-full" value="0" max="36"></progress>
+                    <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
+                </div>
+
+                <!-- 題目顯示區 -->
+                <div id="kana-card" class="card bg-base-200 border-2 border-base-300 w-64 h-64 flex flex-col items-center justify-center shadow-inner transition-all">
+                    <h2 id="current-kana" class="text-7xl font-bold select-none">きゃ</h2>
+                </div>
+
+                <!-- 輸入區 -->
+                <div class="form-control w-full max-w-xs mt-8">
+                    <input type="text" id="romaji-input" autocomplete="off" placeholder="輸入拼音..." class="input input-bordered input-lg w-full text-center text-2xl" />
+                </div>
+
+                <button id="btn-skip" class="btn btn-outline btn-warning w-full max-w-xs mt-4">不知道，跳過</button>
+
+            </div>
+        </div>
+
+        <!-- 第一階段結束畫面 -->
+        <div id="intermission-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center">
+                <h2 class="text-3xl font-bold text-warning mb-2">第一階段結束</h2>
+                <p class="text-gray-500 mb-6">以下是你在測驗中錯過或跳過的拗音，請先複習一下：</p>
+                
+                <div id="weak-list" class="flex flex-wrap gap-3 justify-center mb-8"></div>
+
+                <div class="alert alert-error shadow-sm mb-6 text-sm">
+                    <span>⚠️ 地獄規則：這些不熟的字必須成功盲答 2 次。一旦錯任何 1 次，本次測驗判定失敗且進度重置！</span>
+                </div>
+
+                <button id="btn-start-phase2" class="btn btn-success text-white w-full max-w-xs">開始地獄強化</button>
+            </div>
+        </div>
+
+        <!-- 成功結業畫面 -->
+        <div id="complete-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-success mb-2">拗音測驗完美通關！</h2>
+                <p class="text-gray-500 mb-8">你已經成功克服了所有不熟的拗音組合，太厲害了！</p>
+                <a href="index.html" class="btn btn-success text-white">回首頁看總成績</a>
+            </div>
+        </div>
+
+        <!-- 💀 失敗重置畫面 -->
+        <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">💀</div>
+                <h2 class="text-3xl font-bold text-error mb-2">地獄測驗失敗...</h2>
+                <p class="text-gray-500 mb-8">可惜這次沒有通過弱點考驗，<strong class="text-error">盲測進度已全數重置</strong>。<br>常錯字已記錄到首頁專屬排行榜，請再接再厲！</p>
+                <a href="index.html" class="btn btn-error text-white">回首頁看常錯名單</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK 與 邏輯 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // ==========================================
+        // ⚠️ 必填：請貼上你的 Firebase 金鑰
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
+            authDomain: "japanese-f3239.firebaseapp.com",
+            projectId: "japanese-f3239",
+            storageBucket: "japanese-f3239.firebasestorage.app",
+            messagingSenderId: "201568474978",
+            appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
+            measurementId: "G-9BYMSD88D9"
+        };
+        // ==========================================
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 拗音 36 音
+        const youonData = [
+            { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
+            { kana: 'しゃ', romaji: 'sha' }, { kana: 'しゅ', romaji: 'shu' }, { kana: 'しょ', romaji: 'sho' },
+            { kana: 'ちゃ', romaji: 'cha' }, { kana: 'ちゅ', romaji: 'chu' }, { kana: 'ちょ', romaji: 'cho' },
+            { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
+            { kana: 'ひゃ', romaji: 'hya' }, { kana: 'ひゅ', romaji: 'hyu' }, { kana: 'ひょ', romaji: 'hyo' },
+            { kana: 'みゃ', romaji: 'mya' }, { kana: 'みゅ', romaji: 'myu' }, { kana: 'みょ', romaji: 'myo' },
+            { kana: 'りゃ', romaji: 'rya' }, { kana: 'りゅ', romaji: 'ryu' }, { kana: 'りょ', romaji: 'ryo' },
+            { kana: 'ぎゃ', romaji: 'gya' }, { kana: 'ぎゅ', romaji: 'gyu' }, { kana: 'ぎょ', romaji: 'gyo' },
+            { kana: 'じゃ', romaji: 'ja' },  { kana: 'じゅ', romaji: 'ju' },  { kana: 'じょ', romaji: 'jo' },
+            { kana: 'ぢゃ', romaji: 'dya' }, { kana: 'ぢゅ', romaji: 'dyu' }, { kana: 'ぢょ', romaji: 'dyo' },
+            { kana: 'びゃ', romaji: 'bya' }, { kana: 'びゅ', romaji: 'byu' }, { kana: 'びょ', romaji: 'byo' },
+            { kana: 'ぴゃ', romaji: 'pya' }, { kana: 'ぴゅ', romaji: 'pyu' }, { kana: 'ぴょ', romaji: 'pyo' }
+        ];
+
+        let currentPhase = 1; 
+        let currentTarget = null;
+        let phase1Queue = [];
+        let weakList = [];
+        let phase2Counts = {};
+        let phase2TotalNeeded = 0; 
+        let phase2CurrentDone = 0;
+        
+        let youonExamLearned = []; 
+        let youonExamMistakes = {}; // 新增：拗音專屬常錯字庫
+        let currentRunFailed = false;
+
+        const DOM = {
+            authPanel: document.getElementById('auth-panel'),
+            gamePanel: document.getElementById('game-panel'),
+            intermissionPanel: document.getElementById('intermission-panel'),
+            completePanel: document.getElementById('complete-panel'),
+            failedPanel: document.getElementById('failed-panel'),
+            displayEmail: document.getElementById('display-email'),
+            btnLogout: document.getElementById('btn-logout'),
+            btnReset: document.getElementById('btn-reset'),
+            phaseTitle: document.getElementById('phase-title'),
+            phaseDesc: document.getElementById('phase-desc'),
+            kanaCard: document.getElementById('kana-card'),
+            currentKana: document.getElementById('current-kana'),
+            romajiInput: document.getElementById('romaji-input'),
+            btnSkip: document.getElementById('btn-skip'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            weakListContainer: document.getElementById('weak-list'),
+            btnStartPhase2: document.getElementById('btn-start-phase2'),
+            syncStatus: document.getElementById('cloud-sync-status')
+        };
+
+        // 紀錄通關次數
+        async function recordClearCount() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), {
+                    youonExamClears: increment(1) 
+                }, { merge: true });
+            } catch (error) { console.error("次數更新失敗", error); }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                DOM.authPanel.classList.add('hidden');
+                DOM.gamePanel.classList.remove('hidden');
+                DOM.displayEmail.textContent = user.email;
+                DOM.btnLogout.classList.remove('hidden');
+                
+                await loadYouonExamProgress(user.uid);
+                initGame();
+            } else {
+                DOM.authPanel.classList.remove('hidden');
+                DOM.gamePanel.classList.add('hidden');
+                DOM.displayEmail.textContent = "尚未登入";
+                DOM.btnLogout.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const em = document.getElementById('email').value.trim();
+            const pw = document.getElementById('password').value;
+            try { await signInWithEmailAndPassword(auth, em, pw); } catch (error) { alert('登入失敗'); }
+        });
+
+        document.getElementById('btn-register').addEventListener('click', async () => {
+            const em = document.getElementById('email').value.trim();
+            const pw = document.getElementById('password').value;
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, em, pw);
+                await setDoc(doc(db, "users_progress", cred.user.uid), { youonExamLearned: [], youonExamMistakes: {} }, { merge: true });
+                alert('註冊成功！');
+            } catch (error) { alert('註冊失敗: ' + error.message); }
+        });
+
+        DOM.btnLogout.addEventListener('click', () => signOut(auth));
+
+        DOM.btnReset.addEventListener('click', async () => {
+            if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
+                youonExamLearned = [];
+                await saveYouonExamProgress();
+                window.location.reload();
+            }
+        });
+
+        async function loadYouonExamProgress(uid) {
+            try {
+                const docSnap = await getDoc(doc(db, "users_progress", uid));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.youonExamLearned) youonExamLearned = data.youonExamLearned;
+                    if (data.youonExamMistakes) youonExamMistakes = data.youonExamMistakes;
+                }
+            } catch (error) { console.error("載入失敗", error); }
+        }
+
+        async function saveYouonExamProgress() {
+            const user = auth.currentUser;
+            if (!user) return;
+            DOM.syncStatus.textContent = "儲存中...";
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), { 
+                    youonExamLearned: youonExamLearned,
+                    youonExamMistakes: youonExamMistakes
+                }, { merge: true });
+                DOM.syncStatus.textContent = "已與雲端同步 ✓";
+            } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initGame() {
+            currentPhase = 1;
+            weakList = [];
+            currentRunFailed = false;
+            // 拗音一律以日文字體 (kana) 作為主鍵來判斷與儲存
+            const unlearned = youonData.filter(item => !youonExamLearned.includes(item.kana));
+            
+            if (unlearned.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                DOM.completePanel.classList.remove('hidden');
+                return;
+            }
+
+            phase1Queue = shuffleArray(unlearned); 
+            nextPhase1();
+        }
+
+        function nextPhase1() {
+            const count = youonExamLearned.length;
+            const total = youonData.length;
+            DOM.progressBar.max = total;
+            DOM.progressBar.value = count;
+            DOM.progressText.textContent = `${count} / ${total}`;
+
+            if (phase1Queue.length === 0) {
+                endPhase1();
+                return;
+            }
+
+            currentTarget = phase1Queue.pop();
+            DOM.currentKana.textContent = currentTarget.kana;
+            DOM.romajiInput.value = '';
+            DOM.romajiInput.focus();
+        }
+
+        function endPhase1() {
+            DOM.gamePanel.classList.add('hidden');
+            
+            if (weakList.length === 0) {
+                recordClearCount();
+                DOM.completePanel.classList.remove('hidden');
+            } else {
+                DOM.intermissionPanel.classList.remove('hidden');
+                DOM.weakListContainer.innerHTML = '';
+                weakList.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-error/20 border border-error text-error-content rounded-lg px-4 py-2 text-center";
+                    card.innerHTML = `<div class="text-2xl font-bold">${item.kana}</div><div class="text-sm opacity-80">${item.romaji}</div>`;
+                    DOM.weakListContainer.appendChild(card);
+                });
+            }
+        }
+
+        DOM.btnStartPhase2.addEventListener('click', () => {
+            currentPhase = 2;
+            DOM.intermissionPanel.classList.add('hidden');
+            DOM.gamePanel.classList.remove('hidden');
+            
+            DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+            DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+            DOM.phaseTitle.classList.replace('text-success', 'text-error');
+            DOM.progressBar.classList.replace('progress-success', 'progress-error');
+
+            phase2Counts = {};
+            weakList.forEach(item => { phase2Counts[item.kana] = 2; });
+            phase2TotalNeeded = weakList.length * 2;
+            phase2CurrentDone = 0;
+
+            currentTarget = null; 
+            nextPhase2();
+        });
+
+        function nextPhase2() {
+            DOM.progressBar.max = phase2TotalNeeded;
+            DOM.progressBar.value = phase2CurrentDone;
+            DOM.progressText.textContent = `${phase2CurrentDone} / ${phase2TotalNeeded}`;
+
+            let pool = Object.keys(phase2Counts).filter(kana => phase2Counts[kana] > 0);
+
+            if (pool.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                
+                if (currentRunFailed) {
+                    youonExamLearned = []; // 失敗，無情歸零
+                    saveYouonExamProgress();
+                    DOM.failedPanel.classList.remove('hidden');
+                } else {
+                    recordClearCount();
+                    DOM.completePanel.classList.remove('hidden');
+                }
+                return;
+            }
+
+            let nextKana;
+            if (pool.length === 1) {
+                nextKana = pool[0];
+            } else {
+                do { nextKana = pool[Math.floor(Math.random() * pool.length)]; } 
+                while (currentTarget && nextKana === currentTarget.kana);
+            }
+
+            currentTarget = weakList.find(item => item.kana === nextKana);
+            DOM.currentKana.textContent = currentTarget.kana;
+            DOM.romajiInput.value = '';
+            DOM.romajiInput.focus();
+        }
+
+        function handleCorrect() {
+            DOM.kanaCard.classList.add('success-anim');
+            setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
+
+            if (currentPhase === 1) {
+                if (!youonExamLearned.includes(currentTarget.kana)) {
+                    youonExamLearned.push(currentTarget.kana);
+                    saveYouonExamProgress(); 
+                }
+                setTimeout(nextPhase1, 200);
+            } else {
+                phase2Counts[currentTarget.kana]--;
+                phase2CurrentDone++;
+                
+                if (phase2Counts[currentTarget.kana] === 0) {
+                    if (!youonExamLearned.includes(currentTarget.kana)) {
+                        youonExamLearned.push(currentTarget.kana);
+                        saveYouonExamProgress(); 
+                    }
+                }
+                setTimeout(nextPhase2, 200);
+            }
+        }
+
+        function handleWrong() {
+            DOM.kanaCard.classList.add('error-anim');
+            setTimeout(() => DOM.kanaCard.classList.remove('error-anim'), 300);
+
+            if (currentPhase === 1) {
+                if (!weakList.some(item => item.kana === currentTarget.kana)) {
+                    weakList.push(currentTarget);
+                }
+                setTimeout(nextPhase1, 300);
+            } else {
+                // 【第二階段答錯：一錯即死邏輯】
+                currentRunFailed = true; 
+                
+                // 將錯字寫入專屬的拗音常錯字庫
+                youonExamMistakes[currentTarget.kana] = (youonExamMistakes[currentTarget.kana] || 0) + 1;
+                
+                phase2CurrentDone += phase2Counts[currentTarget.kana];
+                phase2Counts[currentTarget.kana] = 0; 
+                
+                saveYouonExamProgress(); 
+                setTimeout(nextPhase2, 300);
+            }
+        }
+
+        DOM.romajiInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (currentTarget && val === currentTarget.romaji) {
+                handleCorrect();
+            }
+        });
+
+        DOM.romajiInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = e.target.value.trim().toLowerCase();
+                if (val !== currentTarget.romaji) {
+                    handleWrong();
+                }
+            }
+        });
+
+        DOM.btnSkip.addEventListener('click', () => {
+            if (currentTarget) handleWrong();
+        });
+
+    </script>
+</body>
+</html>
