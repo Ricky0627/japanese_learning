@@ -51,10 +51,10 @@
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">完成全套 7 階段特訓，精通所有日文基礎發音！</p>
+                <p class="text-gray-500">按照順序完成全套 9 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <!-- 功能卡片網格 -->
+            <!-- 功能卡片網格 (完美的 3x3 九宮格排版) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- 卡片 1 -->
@@ -145,33 +145,55 @@
                     </div>
                 </div>
 
-                <!-- 卡片 5 -->
-                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between">
+                <!-- 卡片 5 (New) -->
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-accent text-xl">❺ 終極魔王盲測</h2>
-                            <div class="badge badge-accent font-bold p-3" id="final-exam-percent">0%</div>
+                            <h2 class="card-title text-success text-xl">❺ 拗音特訓</h2>
+                            <div class="badge badge-success text-white font-bold p-3" id="youon-percent">0%</div>
                         </div>
-                        <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸聽寫！</p>
+                        <p class="text-gray-500 text-sm mt-2">複合發音訓練。包含21個清音拗音與15個濁音/半濁音拗音，掌握發音訣竅。</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
+                            <progress id="youon-bar" class="progress progress-success w-full" value="0" max="100"></progress>
                             <div class="flex justify-between w-full mt-1">
-                                <span class="text-xs font-bold text-accent">🏆 通關: <span id="final-exam-clears">0</span> 次</span>
-                                <span class="text-xs text-gray-400" id="final-exam-count">精熟度: 0 / 71 音</span>
+                                <span class="text-xs font-bold text-success">🏆 通關: <span id="youon-clears">0</span> 次</span>
+                                <span class="text-xs text-gray-400" id="youon-count">已掌握: 0 / 36 音</span>
                             </div>
                         </div>
                     </div>
                     <div class="px-6 pb-6 text-right">
-                        <a href="final_exam.html" class="btn btn-accent btn-sm w-full text-accent-content">挑戰魔王</a>
+                        <a href="youon.html" class="btn btn-success text-white btn-sm w-full">進入特訓</a>
                     </div>
                 </div>
 
-                <!-- 卡片 6 -->
+                <!-- 卡片 6 (New) -->
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-success text-xl">❻ 拗音盲測</h2>
+                            <div class="badge badge-success text-white font-bold p-3" id="youon-exam-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">拗音實力檢定。將36個拗音完全打亂盲測，精準抓出大腦最容易打結的組合！</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="youon-exam-bar" class="progress progress-success w-full" value="0" max="100"></progress>
+                            <div class="flex justify-between w-full mt-1">
+                                <span class="text-xs font-bold text-success">🏆 通關: <span id="youon-exam-clears">0</span> 次</span>
+                                <span class="text-xs text-gray-400" id="youon-exam-count">精熟度: 0 / 36 音</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="youon_exam.html" class="btn btn-success text-white btn-sm w-full">挑戰盲測</a>
+                    </div>
+                </div>
+
+                <!-- 卡片 7 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-info flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-info text-xl">❻ 清音逆向尋字</h2>
+                            <h2 class="card-title text-info text-xl">❼ 清音逆向尋字</h2>
                             <div class="badge badge-info text-white font-bold p-3" id="reverse-percent">0%</div>
                         </div>
                         <p class="text-gray-500 text-sm mt-2">鷹眼特訓模式。看羅馬拼音在 46 個亂序假名中找出正確清音，徹底強化視覺記憶！</p>
@@ -189,11 +211,11 @@
                     </div>
                 </div>
 
-                <!-- 卡片 7 (New) -->
+                <!-- 卡片 8 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
-                            <h2 class="card-title text-secondary text-xl">❼ 濁音逆向尋字</h2>
+                            <h2 class="card-title text-secondary text-xl">❽ 濁音逆向尋字</h2>
                             <div class="badge badge-secondary text-white font-bold p-3" id="dakuon-reverse-percent">0%</div>
                         </div>
                         <p class="text-gray-500 text-sm mt-2">進階鷹眼特訓。從 25 個濁音與半濁音中精準找出對應假名，消滅所有混淆弱點！</p>
@@ -211,27 +233,60 @@
                     </div>
                 </div>
 
-            </div>
-
-            <!-- 🔥 清音地獄常錯字名單面板 -->
-            <div id="mistakes-panel" class="mt-12 hidden">
-                <div class="divider"></div> 
-                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <span class="text-error">💀</span> 清音地獄常錯字排行榜
-                </h2>
-                <div class="bg-base-100 rounded-box p-6 shadow-sm border border-error/30">
-                    <div id="mistakes-container" class="flex flex-wrap gap-3"></div>
+                <!-- 卡片 9 -->
+                <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start">
+                            <h2 class="card-title text-accent text-xl">❾ 終極魔王盲測</h2>
+                            <div class="badge badge-accent font-bold p-3" id="final-exam-percent">0%</div>
+                        </div>
+                        <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸聽寫！</p>
+                        
+                        <div class="w-full mt-6">
+                            <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
+                            <div class="flex justify-between w-full mt-1">
+                                <span class="text-xs font-bold text-accent">🏆 通關: <span id="final-exam-clears">0</span> 次</span>
+                                <span class="text-xs text-gray-400" id="final-exam-count">精熟度: 0 / 71 音</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 text-right">
+                        <a href="final_exam.html" class="btn btn-accent btn-sm w-full text-accent-content">挑戰魔王</a>
+                    </div>
                 </div>
+
             </div>
 
-            <!-- 👿 濁音地獄常錯字名單面板 -->
-            <div id="dakuon-mistakes-panel" class="mt-8 hidden">
-                <div class="divider"></div> 
-                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-secondary">
-                    <span>👿</span> 濁音地獄常錯字排行榜
-                </h2>
-                <div class="bg-base-100 rounded-box p-6 shadow-sm border border-secondary/30">
-                    <div id="dakuon-mistakes-container" class="flex flex-wrap gap-3"></div>
+            <!-- 🔥 3大常錯字排行榜區塊 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 清音錯字 (紅) -->
+                <div id="mistakes-panel" class="mt-8 hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-error">
+                        <span class="">💀</span> 清音常錯排行榜
+                    </h2>
+                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-error/30">
+                        <div id="mistakes-container" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+
+                <!-- 濁音錯字 (紫) -->
+                <div id="dakuon-mistakes-panel" class="mt-8 hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-secondary">
+                        <span>👿</span> 濁音常錯排行榜
+                    </h2>
+                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-secondary/30">
+                        <div id="dakuon-mistakes-container" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+
+                <!-- 拗音錯字 (綠) - New -->
+                <div id="youon-mistakes-panel" class="mt-8 hidden">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-success">
+                        <span>🌟</span> 拗音常錯排行榜
+                    </h2>
+                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-success/30">
+                        <div id="youon-mistakes-container" class="flex flex-wrap gap-2"></div>
+                    </div>
                 </div>
             </div>
 
@@ -302,17 +357,20 @@
                 
                 let learnedCount = 0; let examLearnedCount = 0; let dakuonLearnedCount = 0;
                 let dakuonExamLearnedCount = 0; let finalExamLearnedCount = 0; let reverseLearnedCount = 0;
-                let dakuonReverseLearnedCount = 0;
+                let dakuonReverseLearnedCount = 0; let youonLearnedCount = 0; let youonExamLearnedCount = 0;
                 
                 let gojuonClears = 0; let examClears = 0; let dakuonClears = 0;
                 let dakuonExamClears = 0; let finalExamClears = 0; let reverseClears = 0;
-                let dakuonReverseClears = 0;
+                let dakuonReverseClears = 0; let youonClears = 0; let youonExamClears = 0;
 
                 let examMistakes = {};
                 let dakuonExamMistakes = {};
+                let youonExamMistakes = {}; // 新增：接取拗音常錯字
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    
+                    // 學習進度長度
                     learnedCount = (data.learned || []).length;
                     examLearnedCount = (data.examLearned || []).length;
                     dakuonLearnedCount = (data.dakuonLearned || []).length;
@@ -320,7 +378,10 @@
                     finalExamLearnedCount = (data.finalExamLearned || []).length;
                     reverseLearnedCount = (data.reverseLearned || []).length;
                     dakuonReverseLearnedCount = (data.dakuonReverseLearned || []).length;
+                    youonLearnedCount = (data.youonLearned || []).length;
+                    youonExamLearnedCount = (data.youonExamLearned || []).length;
 
+                    // 通關次數
                     gojuonClears = data.gojuonClears || 0;
                     examClears = data.examClears || 0;
                     dakuonClears = data.dakuonClears || 0;
@@ -328,9 +389,13 @@
                     finalExamClears = data.finalExamClears || 0;
                     reverseClears = data.reverseClears || 0;
                     dakuonReverseClears = data.dakuonReverseClears || 0;
+                    youonClears = data.youonClears || 0;
+                    youonExamClears = data.youonExamClears || 0;
 
+                    // 錯字字典
                     if (data.examMistakes) examMistakes = data.examMistakes;
                     if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
+                    if (data.youonExamMistakes) youonExamMistakes = data.youonExamMistakes;
                 }
 
                 // --- 渲染【清音】常錯字 ---
@@ -344,8 +409,8 @@
                         const kanaObj = gojuonData.find(k => k.romaji === romaji);
                         const kanaText = kanaObj ? kanaObj.kana : romaji;
                         const badge = document.createElement('div');
-                        badge.className = "badge badge-error badge-lg gap-2 p-4 text-lg shadow-sm font-bold text-white";
-                        badge.innerHTML = `${kanaText} <span class="badge badge-sm badge-neutral text-white font-mono">${count}次</span>`;
+                        badge.className = "badge badge-error badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
+                        badge.innerHTML = `${kanaText} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
                         mistakesContainer.appendChild(badge);
                     });
                 } else { mistakesPanel.classList.add('hidden'); }
@@ -359,11 +424,26 @@
                     dakuonMistakesContainer.innerHTML = '';
                     dakuonMistakeEntries.forEach(([kana, count]) => {
                         const badge = document.createElement('div');
-                        badge.className = "badge badge-secondary badge-lg gap-2 p-4 text-lg shadow-sm font-bold text-white";
-                        badge.innerHTML = `${kana} <span class="badge badge-sm badge-neutral text-white font-mono">${count}次</span>`;
+                        badge.className = "badge badge-secondary badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
+                        badge.innerHTML = `${kana} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
                         dakuonMistakesContainer.appendChild(badge);
                     });
                 } else { dakuonMistakesPanel.classList.add('hidden'); }
+
+                // --- 渲染【拗音】常錯字 (New) ---
+                const youonMistakesPanel = document.getElementById('youon-mistakes-panel');
+                const youonMistakesContainer = document.getElementById('youon-mistakes-container');
+                const youonMistakeEntries = Object.entries(youonExamMistakes).sort((a, b) => b[1] - a[1]);
+                if (youonMistakeEntries.length > 0) {
+                    youonMistakesPanel.classList.remove('hidden');
+                    youonMistakesContainer.innerHTML = '';
+                    youonMistakeEntries.forEach(([kana, count]) => {
+                        const badge = document.createElement('div');
+                        badge.className = "badge badge-success badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
+                        badge.innerHTML = `${kana} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
+                        youonMistakesContainer.appendChild(badge);
+                    });
+                } else { youonMistakesPanel.classList.add('hidden'); }
 
                 // 更新歷史通關次數
                 document.getElementById('gojuon-clears').textContent = gojuonClears;
@@ -373,8 +453,10 @@
                 document.getElementById('final-exam-clears').textContent = finalExamClears;
                 document.getElementById('reverse-clears').textContent = reverseClears;
                 document.getElementById('dakuon-reverse-clears').textContent = dakuonReverseClears;
+                document.getElementById('youon-clears').textContent = youonClears;
+                document.getElementById('youon-exam-clears').textContent = youonExamClears;
 
-                // 換算進度百分比
+                // 換算進度百分比 (清音46, 濁音25, 拗音36, 魔王71)
                 const gojuonPercentage = Math.round((learnedCount / 46) * 100);
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
                 const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
@@ -382,8 +464,10 @@
                 const finalExamPercentage = Math.round((finalExamLearnedCount / 71) * 100); 
                 const reversePercentage = Math.round((reverseLearnedCount / 46) * 100);
                 const dakuonReversePercentage = Math.round((dakuonReverseLearnedCount / 25) * 100);
+                const youonPercentage = Math.round((youonLearnedCount / 36) * 100);
+                const youonExamPercentage = Math.round((youonExamLearnedCount / 36) * 100);
 
-                // 更新卡片
+                // 更新卡片 1-4
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
                 document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
@@ -399,11 +483,17 @@
                 document.getElementById('dakuon-exam-percent').textContent = `${dakuonExamPercentage}%`;
                 document.getElementById('dakuon-exam-bar').value = dakuonExamPercentage;
                 document.getElementById('dakuon-exam-count').textContent = `精熟度: ${dakuonExamLearnedCount} / 25 音`;
+
+                // 更新卡片 5-6 (拗音)
+                document.getElementById('youon-percent').textContent = `${youonPercentage}%`;
+                document.getElementById('youon-bar').value = youonPercentage;
+                document.getElementById('youon-count').textContent = `已掌握: ${youonLearnedCount} / 36 音`;
+
+                document.getElementById('youon-exam-percent').textContent = `${youonExamPercentage}%`;
+                document.getElementById('youon-exam-bar').value = youonExamPercentage;
+                document.getElementById('youon-exam-count').textContent = `精熟度: ${youonExamLearnedCount} / 36 音`;
                 
-                document.getElementById('final-exam-percent').textContent = `${finalExamPercentage}%`;
-                document.getElementById('final-exam-bar').value = finalExamPercentage;
-                document.getElementById('final-exam-count').textContent = `精熟度: ${finalExamLearnedCount} / 71 音`;
-                
+                // 更新卡片 7-9 (尋字與魔王)
                 document.getElementById('reverse-percent').textContent = `${reversePercentage}%`;
                 document.getElementById('reverse-bar').value = reversePercentage;
                 document.getElementById('reverse-count').textContent = `尋字力: ${reverseLearnedCount} / 46 音`;
@@ -411,6 +501,10 @@
                 document.getElementById('dakuon-reverse-percent').textContent = `${dakuonReversePercentage}%`;
                 document.getElementById('dakuon-reverse-bar').value = dakuonReversePercentage;
                 document.getElementById('dakuon-reverse-count').textContent = `尋字力: ${dakuonReverseLearnedCount} / 25 音`;
+
+                document.getElementById('final-exam-percent').textContent = `${finalExamPercentage}%`;
+                document.getElementById('final-exam-bar').value = finalExamPercentage;
+                document.getElementById('final-exam-count').textContent = `精熟度: ${finalExamLearnedCount} / 71 音`;
 
             } catch (error) {
                 console.error("首頁讀取進度失敗:", error);
@@ -432,8 +526,8 @@
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
                 await setDoc(doc(db, "users_progress", cred.user.uid), { 
                     learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [], finalExamLearned: [], 
-                    reverseLearned: [], dakuonReverseLearned: [],
-                    examMistakes: {}, dakuonExamMistakes: {} 
+                    reverseLearned: [], dakuonReverseLearned: [], youonLearned: [], youonExamLearned: [],
+                    examMistakes: {}, dakuonExamMistakes: {}, youonExamMistakes: {} 
                 }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
