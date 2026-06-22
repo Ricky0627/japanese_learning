@@ -65,6 +65,21 @@
                 </div>
 
                 <div id="kana-card" class="kana-card card bg-base-200 border-2 border-base-300 w-full max-w-sm h-64 flex flex-col items-center justify-center shadow-inner transition-all cursor-pointer relative" title="點擊重新播放發音">
+                    
+                    <!-- 📌 左上角標註圖釘 -->
+                    <div id="bookmark-btn" class="absolute top-4 left-4 cursor-pointer z-10 transition-transform hover:scale-110" title="點擊釘選/取消標註">
+                        <!-- 空心圖釘 -->
+                        <svg id="pin-hollow" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 hover:text-secondary">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                        <!-- 實心圖釘 -->
+                        <svg id="pin-solid" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden drop-shadow-md">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                    </div>
+
                     <div id="audio-icon" class="absolute top-4 right-4 text-gray-400 text-2xl">🔊</div>
                     
                     <div id="learn-view" class="flex items-center justify-center gap-4 w-full">
@@ -107,16 +122,11 @@
 
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        // 💡 關鍵修改點 1：引入 increment 函數
         import { getFirestore, doc, setDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
@@ -126,13 +136,11 @@
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
-        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 原汁原味的拼音對照 (じ/ぢ 皆為 ji, ず/づ 皆為 zu)
         const dakuonData = [
             { baseKana: 'か', baseRomaji: 'ka', kana: 'が', romaji: 'ga' }, { baseKana: 'き', baseRomaji: 'ki', kana: 'ぎ', romaji: 'gi' }, { baseKana: 'く', baseRomaji: 'ku', kana: 'ぐ', romaji: 'gu' }, { baseKana: 'け', baseRomaji: 'ke', kana: 'げ', romaji: 'ge' }, { baseKana: 'こ', baseRomaji: 'ko', kana: 'ご', romaji: 'go' },
             { baseKana: 'さ', baseRomaji: 'sa', kana: 'ざ', romaji: 'za' }, { baseKana: 'し', baseRomaji: 'shi', kana: 'じ', romaji: 'ji' }, { baseKana: 'す', baseRomaji: 'su', kana: 'ず', romaji: 'zu' }, { baseKana: 'せ', baseRomaji: 'se', kana: 'ぜ', romaji: 'ze' }, { baseKana: 'そ', baseRomaji: 'so', kana: 'ぞ', romaji: 'zo' },
@@ -142,6 +150,7 @@
         ];
 
         let dakuonLearned = [];     
+        let bookmarks = [];          // 📌 標註清單
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
@@ -177,7 +186,11 @@
             progressBar: document.getElementById('progress-bar'),
             progressText: document.getElementById('progress-text'),
             syncStatus: document.getElementById('cloud-sync-status'),
-            kanaCard: document.getElementById('kana-card')
+            kanaCard: document.getElementById('kana-card'),
+            // 📌 圖釘 DOM
+            bookmarkBtn: document.getElementById('bookmark-btn'),
+            pinHollow: document.getElementById('pin-hollow'),
+            pinSolid: document.getElementById('pin-solid')
         };
 
         function shuffleArray(array) {
@@ -209,7 +222,43 @@
             DOM.romajiInput.focus();
         });
 
-        // 💡 關鍵修改點 2：加入專屬的通關次數紀錄函數
+        // 📌 處理標註切換與存檔
+        DOM.bookmarkBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); 
+            if (!currentTarget) return;
+            
+            const kana = currentTarget.kana;
+            const index = bookmarks.indexOf(kana);
+            
+            if (index > -1) {
+                bookmarks.splice(index, 1);
+            } else {
+                bookmarks.push(kana);      
+            }
+            
+            updateBookmarkUI();
+            
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    await setDoc(doc(db, "users_progress", user.uid), { bookmarks: bookmarks }, { merge: true });
+                } catch (error) { console.error("標註同步失敗", error); }
+            }
+        });
+
+        // 📌 更新圖釘顯示狀態
+        function updateBookmarkUI() {
+            if (!currentTarget) return;
+            
+            if (bookmarks.includes(currentTarget.kana)) {
+                DOM.pinHollow.classList.add('hidden');
+                DOM.pinSolid.classList.remove('hidden');
+            } else {
+                DOM.pinHollow.classList.remove('hidden');
+                DOM.pinSolid.classList.add('hidden');
+            }
+        }
+
         async function recordClearCount() {
             const user = auth.currentUser;
             if (!user) return;
@@ -243,7 +292,7 @@
             const pw = DOM.pwdInput.value;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { dakuonLearned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { dakuonLearned: [], bookmarks: [] }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
@@ -258,7 +307,7 @@
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
         DOM.btnReset.addEventListener('click', async () => {
-            if (confirm("確定要將進度歸零重新開始嗎？這個動作無法復原喔！")) {
+            if (confirm("確定要將進度歸零重新開始嗎？次數紀錄與標註不會被刪除喔！")) {
                 dakuonLearned = [];
                 recentBatch = [];
                 reviewQueue = [];
@@ -274,10 +323,12 @@
         async function loadCloudProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().dakuonLearned) {
+                if (docSnap.exists()) {
                     dakuonLearned = docSnap.data().dakuonLearned || [];
+                    bookmarks = docSnap.data().bookmarks || []; // 📌 載入書籤
                 } else {
                     dakuonLearned = [];
+                    bookmarks = [];
                 }
                 updateProgressUI();
             } catch (error) { console.error("載入失敗", error); }
@@ -297,6 +348,7 @@
             clearTimeout(hintTimer);
             DOM.hintBtn.classList.add('hidden');
             DOM.hintBtn.classList.add('animate-pulse');
+            DOM.bookmarkBtn.classList.remove('hidden'); // 確保圖釘顯示
 
             if (gameMode === 'REVIEW') {
                 if (reviewQueue.length === 0) {
@@ -323,7 +375,6 @@
                     return nextQuestion(); 
                 }
 
-                // 以 item.kana 過濾庫存
                 const unlearned = dakuonData.filter(item => 
                     !dakuonLearned.includes(item.kana) && 
                     !recentBatch.some(r => r.kana === item.kana)
@@ -349,17 +400,14 @@
                 playKanaAudio(false); 
             }
 
-            // 左側對照區：顯示對應的清音 (base)
             DOM.baseKana.textContent = currentTarget.baseKana;
             DOM.baseRomaji.textContent = currentTarget.baseRomaji;
-            
-            // 右側學習區：顯示目標的濁音
             DOM.learnKana.textContent = currentTarget.kana;
             DOM.learnRomaji.textContent = currentTarget.romaji;
-            
-            // 複習模式區：只顯示目標的濁音
             DOM.reviewKana.textContent = currentTarget.kana;
             DOM.reviewRomaji.textContent = currentTarget.romaji;
+            
+            updateBookmarkUI(); // 📌 同步圖釘狀態
             
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus(); 
@@ -401,8 +449,8 @@
             DOM.romajiInput.placeholder = "可以點擊上方回首頁挑戰其他項目！";
             DOM.audioIcon.classList.add('hidden');
             DOM.hintText.classList.add('hidden');
+            DOM.bookmarkBtn.classList.add('hidden'); // 結業隱藏圖釘
             
-            // 💡 關鍵修改點 3：在全數通關時呼叫紀錄函數
             recordClearCount();
         }
 
@@ -438,7 +486,6 @@
                     DOM.reviewRomaji.classList.remove('hidden'); 
 
                     if (!usedHint) {
-                        // 存入日文字 (kana)
                         if (!dakuonLearned.includes(currentTarget.kana)) {
                             dakuonLearned.push(currentTarget.kana);
                             penaltyQueue = penaltyQueue.filter(k => k !== currentTarget.kana);
