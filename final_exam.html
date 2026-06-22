@@ -53,7 +53,7 @@
                 
                 <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
 
-                <h2 id="phase-title" class="text-2xl font-bold text-accent mb-2">👾 終極大魔王：清濁音綜合盲測</h2>
+                <h2 id="phase-title" class="text-2xl font-bold text-accent mb-2">👾 魔王第一階段：全範圍盲測</h2>
                 <p id="phase-desc" class="text-sm text-gray-500 mb-4">共 71 音無差別連環攻擊。不知道可按 Enter 或點擊跳過。</p>
 
                 <div class="w-full mb-6">
@@ -85,30 +85,45 @@
                 
                 <div id="weak-list" class="flex flex-wrap gap-3 justify-center mb-8"></div>
 
-                <div class="alert alert-info shadow-sm mb-6 text-sm">
-                    <span>第二階段規則：這些不熟的字，每個都必須答對 2 次才算真正過關！</span>
+                <div class="alert alert-error shadow-sm mb-6 text-sm">
+                    <span>⚠️ 地獄規則：這些不熟的字必須成功盲答 2 次。一旦錯任何 1 次，本次測驗判定失敗且進度重置！</span>
                 </div>
 
-                <button id="btn-start-phase2" class="btn btn-accent w-full max-w-xs">開始最終強化特訓</button>
+                <button id="btn-start-phase2" class="btn btn-accent w-full max-w-xs">開始魔王強化特訓</button>
             </div>
         </div>
 
+        <!-- 成功結業畫面 -->
         <div id="complete-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center py-12">
                 <div class="text-6xl mb-4">👑</div>
                 <h2 class="text-3xl font-bold text-accent mb-2">日文發音大師誕生！</h2>
                 <p class="text-gray-500 mb-8">你已經完美通關了 71 音的綜合盲測，基礎假名再也難不倒你了！</p>
-                <a href="index.html" class="btn btn-accent">回首頁看總成績</a>
+                <a href="index.html" class="btn btn-accent text-white">回首頁看總成績</a>
+            </div>
+        </div>
+
+        <!-- 💀 失敗重置畫面 -->
+        <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">💀</div>
+                <h2 class="text-3xl font-bold text-error mb-2">魔王測驗失敗...</h2>
+                <p class="text-gray-500 mb-8">可惜這次沒有通過弱點考驗，<strong class="text-error">盲測進度已全數重置</strong>。<br>常錯字已自動分類記錄到首頁對應的排行榜，請再接再厲！</p>
+                <a href="index.html" class="btn btn-error text-white">回首頁看常錯名單</a>
             </div>
         </div>
 
     </div>
 
+    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
+        // ==========================================
+        // ⚠️ 必填：請替換成你的 Firebase 控制台金鑰
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
@@ -118,6 +133,7 @@
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
+        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -130,16 +146,19 @@
             { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
             { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
             { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
-            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'мо', romaji: 'mo' },
+            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
             { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
             { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' },
             { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
             { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
-            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'ji' }, { kana: 'づ', romaji: 'zu' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'di' }, { kana: 'づ', romaji: 'du' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
             { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
             { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
         ];
+
+        // 濁音列表，用於自動分類錯字
+        const dakuonKanas = ['が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ','だ','ぢ','づ','で','ど','ば','び','ぶ','べ','ぼ','ぱ','ぴ','ぷ','ぺ','ぽ'];
 
         let currentPhase = 1; 
         let currentTarget = null;
@@ -148,13 +167,18 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        let finalExamLearned = []; // 改存 ["あ", "が", "ぢ"]
+        
+        let finalExamLearned = []; 
+        let examMistakes = {};       // 接取清音常錯字 (首頁共用)
+        let dakuonExamMistakes = {}; // 接取濁音常錯字 (首頁共用)
+        let currentRunFailed = false;
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
             gamePanel: document.getElementById('game-panel'),
             intermissionPanel: document.getElementById('intermission-panel'),
             completePanel: document.getElementById('complete-panel'),
+            failedPanel: document.getElementById('failed-panel'),
             displayEmail: document.getElementById('display-email'),
             btnLogout: document.getElementById('btn-logout'),
             btnReset: document.getElementById('btn-reset'),
@@ -171,6 +195,17 @@
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
+        // 紀錄通關次數
+        async function recordClearCount() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), {
+                    finalExamClears: increment(1) 
+                }, { merge: true });
+            } catch (error) { console.error("次數更新失敗", error); }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 DOM.authPanel.classList.add('hidden');
@@ -178,7 +213,7 @@
                 DOM.displayEmail.textContent = user.email;
                 DOM.btnLogout.classList.remove('hidden');
                 
-                await loadFinalExamProgress(user.uid);
+                await loadFinalExamData(user.uid);
                 initGame();
             } else {
                 DOM.authPanel.classList.remove('hidden');
@@ -199,7 +234,9 @@
             const pw = document.getElementById('password').value;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { finalExamLearned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { 
+                    finalExamLearned: [], examMistakes: {}, dakuonExamMistakes: {} 
+                }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
@@ -209,26 +246,35 @@
         DOM.btnReset.addEventListener('click', async () => {
             if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
                 finalExamLearned = [];
-                await saveFinalExamProgress();
+                await saveFinalExamData();
                 window.location.reload();
             }
         });
 
-        async function loadFinalExamProgress(uid) {
+        // 載入進度與兩個常錯字字典
+        async function loadFinalExamData(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().finalExamLearned) {
-                    finalExamLearned = docSnap.data().finalExamLearned;
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.finalExamLearned) finalExamLearned = data.finalExamLearned;
+                    if (data.examMistakes) examMistakes = data.examMistakes;
+                    if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
                 }
             } catch (error) { console.error("載入失敗", error); }
         }
 
-        async function saveFinalExamProgress() {
+        // 同步儲存所有資料
+        async function saveFinalExamData() {
             const user = auth.currentUser;
             if (!user) return;
             DOM.syncStatus.textContent = "儲存中...";
             try {
-                await setDoc(doc(db, "users_progress", user.uid), { finalExamLearned: finalExamLearned }, { merge: true });
+                await setDoc(doc(db, "users_progress", user.uid), { 
+                    finalExamLearned: finalExamLearned,
+                    examMistakes: examMistakes,
+                    dakuonExamMistakes: dakuonExamMistakes
+                }, { merge: true });
                 DOM.syncStatus.textContent = "已與雲端同步 ✓";
             } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
         }
@@ -245,7 +291,7 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            // 【方案一修改】使用 item.kana 進行進度過濾
+            currentRunFailed = false;
             const unlearned = finalData.filter(item => !finalExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
@@ -280,13 +326,14 @@
             DOM.gamePanel.classList.add('hidden');
             
             if (weakList.length === 0) {
+                recordClearCount();
                 DOM.completePanel.classList.remove('hidden');
             } else {
                 DOM.intermissionPanel.classList.remove('hidden');
                 DOM.weakListContainer.innerHTML = '';
                 weakList.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = "bg-warning/20 border border-warning text-warning-content rounded-lg px-4 py-2 text-center";
+                    card.className = "bg-error/20 border border-error text-error-content rounded-lg px-4 py-2 text-center";
                     card.innerHTML = `<div class="text-2xl font-bold">${item.kana}</div><div class="text-sm opacity-80">${item.romaji}</div>`;
                     DOM.weakListContainer.appendChild(card);
                 });
@@ -297,13 +344,13 @@
             currentPhase = 2;
             DOM.intermissionPanel.classList.add('hidden');
             DOM.gamePanel.classList.remove('hidden');
-            DOM.phaseTitle.textContent = "🔥 第二階段：弱點強化特訓";
-            DOM.phaseDesc.textContent = "每個字必須成功答對 2 次！";
-            DOM.phaseTitle.classList.replace('text-accent', 'text-warning');
-            DOM.progressBar.classList.replace('progress-accent', 'progress-warning');
+            
+            DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+            DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+            DOM.phaseTitle.classList.replace('text-accent', 'text-error');
+            DOM.progressBar.classList.replace('progress-accent', 'progress-error');
 
             phase2Counts = {};
-            // 【方案一修改】計數器以日文字體為主鍵
             weakList.forEach(item => { phase2Counts[item.kana] = 2; });
             phase2TotalNeeded = weakList.length * 2;
             phase2CurrentDone = 0;
@@ -321,7 +368,16 @@
 
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
-                DOM.completePanel.classList.remove('hidden');
+                
+                // 結算：如果有錯，就是失敗並重置進度
+                if (currentRunFailed) {
+                    finalExamLearned = []; 
+                    saveFinalExamData();
+                    DOM.failedPanel.classList.remove('hidden');
+                } else {
+                    recordClearCount();
+                    DOM.completePanel.classList.remove('hidden');
+                }
                 return;
             }
 
@@ -344,10 +400,9 @@
             setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
             if (currentPhase === 1) {
-                // 【方案一修改】改將 currentTarget.kana 存檔
                 if (!finalExamLearned.includes(currentTarget.kana)) {
                     finalExamLearned.push(currentTarget.kana);
-                    saveFinalExamProgress(); 
+                    saveFinalExamData(); 
                 }
                 setTimeout(nextPhase1, 200);
             } else {
@@ -357,7 +412,7 @@
                 if (phase2Counts[currentTarget.kana] === 0) {
                     if (!finalExamLearned.includes(currentTarget.kana)) {
                         finalExamLearned.push(currentTarget.kana);
-                        saveFinalExamProgress(); 
+                        saveFinalExamData(); 
                     }
                 }
                 setTimeout(nextPhase2, 200);
@@ -374,6 +429,21 @@
                 }
                 setTimeout(nextPhase1, 300);
             } else {
+                // 【第二階段答錯：自動分類常錯字庫】
+                currentRunFailed = true; 
+                
+                if (dakuonKanas.includes(currentTarget.kana)) {
+                    // 如果是濁音，存入濁音錯字庫
+                    dakuonExamMistakes[currentTarget.kana] = (dakuonExamMistakes[currentTarget.kana] || 0) + 1;
+                } else {
+                    // 如果是清音，存入清音錯字庫
+                    examMistakes[currentTarget.romaji] = (examMistakes[currentTarget.romaji] || 0) + 1;
+                }
+                
+                phase2CurrentDone += phase2Counts[currentTarget.kana];
+                phase2Counts[currentTarget.kana] = 0; // 剔除該字不給考
+                
+                saveFinalExamData(); 
                 setTimeout(nextPhase2, 300);
             }
         }
@@ -397,6 +467,7 @@
         DOM.btnSkip.addEventListener('click', () => {
             if (currentTarget) handleWrong();
         });
+
     </script>
 </body>
 </html>
