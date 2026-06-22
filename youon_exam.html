@@ -118,9 +118,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        // ==========================================
-        // ⚠️ 必填：請貼上你的 Firebase 金鑰
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
@@ -130,15 +127,15 @@
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
-        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // 完美乾淨校對版 36 拗音資料庫
         const youonData = [
             { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
-            { kana: 'しゃ', romaji: 'sha' }, { kana: 'しゅ', romaji: 'shu' }, { kana: 'しょ', romaji: 'sho' },
+            { kana: 'しゃ', romaji: 'sya' }, { kana: 'しゅ', romaji: 'syu' }, { kana: 'しょ', romaji: 'syo' },
             { kana: 'ちゃ', romaji: 'cha' }, { kana: 'ちゅ', romaji: 'chu' }, { kana: 'ちょ', romaji: 'cho' },
             { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
             { kana: 'ひゃ', romaji: 'hya' }, { kana: 'ひゅ', romaji: 'hyu' }, { kana: 'ひょ', romaji: 'hyo' },
@@ -185,7 +182,7 @@
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
-        // --- 本地狀態儲存機制 (拗音版，鍵值使用 youon) ---
+        // --- 本地狀態儲存機制 ---
         function saveLocalState() {
             const user = auth.currentUser;
             if (!user) return;
@@ -214,7 +211,7 @@
             if (!user) return;
             localStorage.removeItem(`exam_state_youon_${user.uid}`);
         }
-        // -------------------------------------------------
+        // -------------------------
 
         async function recordClearCount() {
             const user = auth.currentUser;
