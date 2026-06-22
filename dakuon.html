@@ -107,10 +107,12 @@
 
     </div>
 
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // 💡 關鍵修改點 1：引入 increment 函數
+        import { getFirestore, doc, setDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // ==========================================
         // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
@@ -130,7 +132,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 恢復原汁原味的拼音對照 (じ/ぢ 皆為 ji, ず/づ 皆為 zu)
+        // 原汁原味的拼音對照 (じ/ぢ 皆為 ji, ず/づ 皆為 zu)
         const dakuonData = [
             { baseKana: 'か', baseRomaji: 'ka', kana: 'が', romaji: 'ga' }, { baseKana: 'き', baseRomaji: 'ki', kana: 'ぎ', romaji: 'gi' }, { baseKana: 'く', baseRomaji: 'ku', kana: 'ぐ', romaji: 'gu' }, { baseKana: 'け', baseRomaji: 'ke', kana: 'げ', romaji: 'ge' }, { baseKana: 'こ', baseRomaji: 'ko', kana: 'ご', romaji: 'go' },
             { baseKana: 'さ', baseRomaji: 'sa', kana: 'ざ', romaji: 'za' }, { baseKana: 'し', baseRomaji: 'shi', kana: 'じ', romaji: 'ji' }, { baseKana: 'す', baseRomaji: 'su', kana: 'ず', romaji: 'zu' }, { baseKana: 'せ', baseRomaji: 'se', kana: 'ぜ', romaji: 'ze' }, { baseKana: 'そ', baseRomaji: 'so', kana: 'ぞ', romaji: 'zo' },
@@ -139,7 +141,7 @@
             { baseKana: 'は', baseRomaji: 'ha', kana: 'ぱ', romaji: 'pa' }, { baseKana: 'ひ', baseRomaji: 'hi', kana: 'ぴ', romaji: 'pi' }, { baseKana: 'ふ', baseRomaji: 'fu', kana: 'ぷ', romaji: 'pu' }, { baseKana: 'へ', baseRomaji: 'he', kana: 'ぺ', romaji: 'pe' }, { baseKana: 'ほ', baseRomaji: 'ho', kana: 'ぽ', romaji: 'po' }
         ];
 
-        let dakuonLearned = []; // 裡面會改存儲日文字型如 ["が", "ざ", "ぢ"]     
+        let dakuonLearned = [];     
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
@@ -206,6 +208,17 @@
             DOM.hintBtn.classList.remove('animate-pulse');
             DOM.romajiInput.focus();
         });
+
+        // 💡 關鍵修改點 2：加入專屬的通關次數紀錄函數
+        async function recordClearCount() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), {
+                    dakuonClears: increment(1) 
+                }, { merge: true });
+            } catch (error) { console.error("次數更新失敗", error); }
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -310,7 +323,7 @@
                     return nextQuestion(); 
                 }
 
-                // 【方案一核心修改】改以 item.kana 過濾庫存
+                // 以 item.kana 過濾庫存
                 const unlearned = dakuonData.filter(item => 
                     !dakuonLearned.includes(item.kana) && 
                     !recentBatch.some(r => r.kana === item.kana)
@@ -336,7 +349,6 @@
                 playKanaAudio(false); 
             }
 
-            // --- 💡 這裡就是修正的關鍵點 ---
             // 左側對照區：顯示對應的清音 (base)
             DOM.baseKana.textContent = currentTarget.baseKana;
             DOM.baseRomaji.textContent = currentTarget.baseRomaji;
@@ -352,6 +364,7 @@
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus(); 
         }
+
         function setupLearnUI() {
             DOM.modeTitle.textContent = "🌟 學習新字";
             DOM.modeTitle.className = "text-2xl font-bold text-primary mb-4";
@@ -388,6 +401,9 @@
             DOM.romajiInput.placeholder = "可以點擊上方回首頁挑戰其他項目！";
             DOM.audioIcon.classList.add('hidden');
             DOM.hintText.classList.add('hidden');
+            
+            // 💡 關鍵修改點 3：在全數通關時呼叫紀錄函數
+            recordClearCount();
         }
 
         function updateProgressUI() {
@@ -422,7 +438,7 @@
                     DOM.reviewRomaji.classList.remove('hidden'); 
 
                     if (!usedHint) {
-                        // 【方案一核心修改】改將 currentTarget.kana 推進雲端
+                        // 存入日文字 (kana)
                         if (!dakuonLearned.includes(currentTarget.kana)) {
                             dakuonLearned.push(currentTarget.kana);
                             penaltyQueue = penaltyQueue.filter(k => k !== currentTarget.kana);
