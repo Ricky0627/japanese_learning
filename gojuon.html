@@ -17,6 +17,7 @@
 
     <div class="max-w-2xl w-full space-y-6">
         
+        <!-- 頂部導覽 -->
         <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
             <div class="flex items-center gap-2">
                 <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
@@ -30,6 +31,7 @@
             </div>
         </div>
 
+        <!-- 登入面板 -->
         <div id="auth-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body">
                 <h2 class="card-title mb-2">登入以儲存進度</h2>
@@ -48,6 +50,7 @@
             </div>
         </div>
 
+        <!-- 遊戲主畫面 -->
         <div id="learning-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center relative">
                 
@@ -64,12 +67,31 @@
                     <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
                 </div>
 
+                <!-- 假名卡片 -->
                 <div id="kana-card" class="card bg-base-200 border-2 border-base-300 w-64 h-64 flex flex-col items-center justify-center shadow-inner transition-all cursor-pointer relative" title="點擊重新播放發音">
+                    
+                    <!-- 📌 左上角標註圖釘 (New) -->
+                    <div id="bookmark-btn" class="absolute top-4 left-4 cursor-pointer z-10 transition-transform hover:scale-110" title="點擊釘選/取消標註">
+                        <!-- 空心圖釘 -->
+                        <svg id="pin-hollow" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 hover:text-primary">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                        <!-- 實心圖釘 (白色帶陰影) -->
+                        <svg id="pin-solid" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden drop-shadow-md">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- 右上角喇叭 -->
                     <div id="audio-icon" class="absolute top-4 right-4 text-gray-400 text-2xl">🔊</div>
+                    
                     <h2 id="current-kana" class="text-8xl font-normal select-none">あ</h2>
                     <p id="current-romaji" class="text-3xl font-bold text-primary mt-4 select-none">a</p>
                 </div>
                 
+                <!-- 求救按鈕 -->
                 <div class="h-12 flex items-center justify-center mt-2">
                     <button id="hint-btn" class="btn btn-outline btn-warning btn-sm hidden animate-pulse">
                         🔊 想不起來嗎？聽提示音
@@ -77,6 +99,7 @@
                     <p id="hint-text" class="text-xs text-gray-400">聽不清楚？點擊字卡可重新播放發音</p>
                 </div>
 
+                <!-- 輸入框 -->
                 <div class="form-control w-full max-w-xs mt-2">
                     <label class="label justify-center">
                         <span id="input-label" class="label-text text-lg font-medium">請輸入對應的羅馬拼音！</span>
@@ -92,10 +115,10 @@
 
     </div>
 
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        // 💡 關鍵修改點：在這裡引入了 increment 函數
         import { getFirestore, doc, setDoc, getDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // ==========================================
@@ -121,7 +144,7 @@
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
             { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'shi' }, { kana: 'す', romaji: 'su' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
             { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
-            { kana: 'na', kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
+            { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
             { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
             { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
             { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
@@ -130,6 +153,7 @@
         ];
 
         let learnedRomaji = [];      
+        let bookmarks = [];     // 📌 標註清單
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
@@ -159,7 +183,12 @@
             progressBar: document.getElementById('progress-bar'),
             progressText: document.getElementById('progress-text'),
             syncStatus: document.getElementById('cloud-sync-status'),
-            kanaCard: document.getElementById('kana-card')
+            kanaCard: document.getElementById('kana-card'),
+            
+            // 📌 圖釘 DOM
+            bookmarkBtn: document.getElementById('bookmark-btn'),
+            pinHollow: document.getElementById('pin-hollow'),
+            pinSolid: document.getElementById('pin-solid')
         };
 
         function shuffleArray(array) {
@@ -175,7 +204,6 @@
         function playKanaAudio(force = false) {
             if (!currentTarget) return;
             if (gameMode === 'REVIEW' && !force) return;
-
             const utterance = new SpeechSynthesisUtterance(currentTarget.kana);
             utterance.lang = 'ja-JP'; 
             utterance.rate = 0.8;     
@@ -191,7 +219,44 @@
             DOM.romajiInput.focus();
         });
 
-        // 💡 關鍵修改點：當完全結業時，命令雲端將 gojuonClears 欄位 +1
+        // 📌 處理標註切換與存檔
+        DOM.bookmarkBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // 防止觸發卡片發音
+            if (!currentTarget) return;
+            
+            const kana = currentTarget.kana;
+            const index = bookmarks.indexOf(kana);
+            
+            if (index > -1) {
+                bookmarks.splice(index, 1); // 已經存在就取消標註
+            } else {
+                bookmarks.push(kana);       // 不存在就加入
+            }
+            
+            updateBookmarkUI();
+            
+            // 即時存入 Firebase
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    await setDoc(doc(db, "users_progress", user.uid), { bookmarks: bookmarks }, { merge: true });
+                } catch (error) { console.error("標註同步失敗", error); }
+            }
+        });
+
+        // 📌 依照目前題目更新圖釘顯示狀態
+        function updateBookmarkUI() {
+            if (!currentTarget) return;
+            
+            if (bookmarks.includes(currentTarget.kana)) {
+                DOM.pinHollow.classList.add('hidden');
+                DOM.pinSolid.classList.remove('hidden');
+            } else {
+                DOM.pinHollow.classList.remove('hidden');
+                DOM.pinSolid.classList.add('hidden');
+            }
+        }
+
         async function recordClearCount() {
             const user = auth.currentUser;
             if (!user) return;
@@ -225,7 +290,7 @@
             const pw = DOM.pwdInput.value;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { learned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { learned: [], bookmarks: [] }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
@@ -240,7 +305,7 @@
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
 
         DOM.btnReset.addEventListener('click', async () => {
-            if (confirm("確定要將學習進度歸零重新開始嗎？次數紀錄不會被刪除喔！")) {
+            if (confirm("確定要將學習進度歸零重新開始嗎？次數紀錄與標註不會被刪除喔！")) {
                 learnedRomaji = [];
                 recentBatch = [];
                 reviewQueue = [];
@@ -256,10 +321,12 @@
         async function loadCloudProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().learned) {
+                if (docSnap.exists()) {
                     learnedRomaji = docSnap.data().learned || [];
+                    bookmarks = docSnap.data().bookmarks || []; // 📌 載入書籤
                 } else {
                     learnedRomaji = [];
+                    bookmarks = [];
                 }
                 updateProgressUI();
             } catch (error) { console.error("載入失敗", error); }
@@ -279,6 +346,7 @@
             clearTimeout(hintTimer);
             DOM.hintBtn.classList.add('hidden');
             DOM.hintBtn.classList.add('animate-pulse');
+            DOM.bookmarkBtn.classList.remove('hidden'); // 確保圖釘顯示
 
             if (gameMode === 'REVIEW') {
                 if (reviewQueue.length === 0) {
@@ -332,6 +400,8 @@
 
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.currentRomaji.textContent = currentTarget.romaji;
+            updateBookmarkUI(); // 📌 切換題目時同步更新圖釘狀態
+            
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus(); 
         }
@@ -367,8 +437,8 @@
             DOM.romajiInput.placeholder = "可以點擊左上方回首頁看新紀錄囉！";
             DOM.audioIcon.classList.add('hidden');
             DOM.hintText.classList.add('hidden');
+            DOM.bookmarkBtn.classList.add('hidden'); // 結業隱藏圖釘
             
-            // 💡 關鍵修改點：在這裡觸發通關次數紀錄
             recordClearCount();
         }
 
