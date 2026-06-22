@@ -65,6 +65,19 @@
                 </div>
 
                 <div id="kana-card" class="kana-card card bg-base-200 border-2 border-base-300 w-full max-w-sm h-64 flex flex-col items-center justify-center shadow-inner transition-all cursor-pointer relative" title="點擊重新播放發音">
+                    
+                    <!-- 📌 左上角標註圖釘 -->
+                    <div id="bookmark-btn" class="absolute top-4 left-4 cursor-pointer z-10 transition-transform hover:scale-110" title="點擊釘選/取消標註">
+                        <svg id="pin-hollow" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 hover:text-success">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                        <svg id="pin-solid" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden drop-shadow-md">
+                            <line x1="12" y1="17" x2="12" y2="22"></line>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.68V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3v4.68a2 2 0 0 1-1.11 1.87l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+                        </svg>
+                    </div>
+
                     <div id="audio-icon" class="absolute top-4 right-4 text-gray-400 text-2xl">🔊</div>
                     
                     <div id="learn-view" class="flex items-center justify-center gap-3 w-full">
@@ -127,7 +140,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 完美乾淨校對版 36 拗音資料庫
         const youonData = [
             { base1: 'き', base2: 'ゃ', kana: 'きゃ', romaji: 'kya' }, { base1: 'き', base2: 'ゅ', kana: 'きゅ', romaji: 'kyu' }, { base1: 'き', base2: 'ょ', kana: 'きょ', romaji: 'kyo' },
             { base1: 'し', base2: 'ゃ', kana: 'しゃ', romaji: 'sya' }, { base1: 'し', base2: 'ゅ', kana: 'しゅ', romaji: 'syu' }, { base1: 'し', base2: 'ょ', kana: 'しょ', romaji: 'syo' },
@@ -144,6 +156,7 @@
         ];
 
         let youonLearned = [];     
+        let bookmarks = [];          // 📌 標註清單
         let currentTarget = null;    
         let gameMode = 'LEARN';      
         let recentBatch = [];        
@@ -179,7 +192,11 @@
             progressBar: document.getElementById('progress-bar'),
             progressText: document.getElementById('progress-text'),
             syncStatus: document.getElementById('cloud-sync-status'),
-            kanaCard: document.getElementById('kana-card')
+            kanaCard: document.getElementById('kana-card'),
+            // 📌 圖釘 DOM
+            bookmarkBtn: document.getElementById('bookmark-btn'),
+            pinHollow: document.getElementById('pin-hollow'),
+            pinSolid: document.getElementById('pin-solid')
         };
 
         function shuffleArray(array) {
@@ -209,6 +226,43 @@
             DOM.hintBtn.classList.remove('animate-pulse');
             DOM.romajiInput.focus();
         });
+
+        // 📌 處理標註切換與存檔
+        DOM.bookmarkBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); 
+            if (!currentTarget) return;
+            
+            const kana = currentTarget.kana;
+            const index = bookmarks.indexOf(kana);
+            
+            if (index > -1) {
+                bookmarks.splice(index, 1);
+            } else {
+                bookmarks.push(kana);      
+            }
+            
+            updateBookmarkUI();
+            
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    await setDoc(doc(db, "users_progress", user.uid), { bookmarks: bookmarks }, { merge: true });
+                } catch (error) { console.error("標註同步失敗", error); }
+            }
+        });
+
+        // 📌 更新圖釘顯示狀態
+        function updateBookmarkUI() {
+            if (!currentTarget) return;
+            
+            if (bookmarks.includes(currentTarget.kana)) {
+                DOM.pinHollow.classList.add('hidden');
+                DOM.pinSolid.classList.remove('hidden');
+            } else {
+                DOM.pinHollow.classList.remove('hidden');
+                DOM.pinSolid.classList.add('hidden');
+            }
+        }
 
         async function recordClearCount() {
             const user = auth.currentUser;
@@ -243,7 +297,7 @@
             const pw = DOM.pwdInput.value;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { youonLearned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { youonLearned: [], bookmarks: [] }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
@@ -274,10 +328,12 @@
         async function loadCloudProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().youonLearned) {
+                if (docSnap.exists()) {
                     youonLearned = docSnap.data().youonLearned || [];
+                    bookmarks = docSnap.data().bookmarks || []; // 📌 載入書籤
                 } else {
                     youonLearned = [];
+                    bookmarks = [];
                 }
                 updateProgressUI();
             } catch (error) { console.error("載入失敗", error); }
@@ -297,6 +353,7 @@
             clearTimeout(hintTimer);
             DOM.hintBtn.classList.add('hidden');
             DOM.hintBtn.classList.add('animate-pulse');
+            DOM.bookmarkBtn.classList.remove('hidden'); // 確保圖釘顯示
 
             if (gameMode === 'REVIEW') {
                 if (reviewQueue.length === 0) {
@@ -355,6 +412,8 @@
             DOM.reviewKana.textContent = currentTarget.kana;
             DOM.reviewRomaji.textContent = currentTarget.romaji;
             
+            updateBookmarkUI(); // 📌 同步圖釘狀態
+            
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus(); 
         }
@@ -395,6 +454,7 @@
             DOM.romajiInput.placeholder = "可以點擊上方回首頁挑戰其他項目！";
             DOM.audioIcon.classList.add('hidden');
             DOM.hintText.classList.add('hidden');
+            DOM.bookmarkBtn.classList.add('hidden'); // 結業隱藏圖釘
             
             recordClearCount();
         }
