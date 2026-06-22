@@ -17,7 +17,6 @@
 
     <div class="max-w-2xl w-full space-y-6">
         
-        <!-- 頂部導覽 -->
         <div class="navbar bg-base-100 rounded-box shadow-sm px-6 flex justify-between">
             <div class="flex items-center gap-2">
                 <a href="index.html" class="btn btn-sm btn-ghost hover:bg-base-200">
@@ -31,7 +30,6 @@
             </div>
         </div>
 
-        <!-- 登入面板 -->
         <div id="auth-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body">
                 <h2 class="card-title mb-2">請先登入以記錄測驗成績</h2>
@@ -50,7 +48,6 @@
             </div>
         </div>
 
-        <!-- 遊戲主畫面 -->
         <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center relative">
                 
@@ -59,7 +56,6 @@
                 <h2 id="phase-title" class="text-2xl font-bold text-success mb-2">🔥 拗音第一階段：全範圍盲測</h2>
                 <p id="phase-desc" class="text-sm text-gray-500 mb-4">打出正確拼音即過關。不知道可按 Enter 或點擊跳過。</p>
 
-                <!-- 進度條 -->
                 <div class="w-full mb-6">
                     <div class="flex justify-between text-sm mb-1 font-bold">
                         <span>測驗進度</span>
@@ -69,12 +65,10 @@
                     <p id="cloud-sync-status" class="text-xs text-gray-400 mt-2 text-right">已與雲端同步 ✓</p>
                 </div>
 
-                <!-- 題目顯示區 -->
                 <div id="kana-card" class="card bg-base-200 border-2 border-base-300 w-64 h-64 flex flex-col items-center justify-center shadow-inner transition-all">
                     <h2 id="current-kana" class="text-7xl font-bold select-none">きゃ</h2>
                 </div>
 
-                <!-- 輸入區 -->
                 <div class="form-control w-full max-w-xs mt-8">
                     <input type="text" id="romaji-input" autocomplete="off" placeholder="輸入拼音..." class="input input-bordered input-lg w-full text-center text-2xl" />
                 </div>
@@ -84,7 +78,6 @@
             </div>
         </div>
 
-        <!-- 第一階段結束畫面 -->
         <div id="intermission-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center">
                 <h2 class="text-3xl font-bold text-warning mb-2">第一階段結束</h2>
@@ -100,7 +93,6 @@
             </div>
         </div>
 
-        <!-- 成功結業畫面 -->
         <div id="complete-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center py-12">
                 <div class="text-6xl mb-4">🏆</div>
@@ -110,7 +102,6 @@
             </div>
         </div>
 
-        <!-- 💀 失敗重置畫面 -->
         <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
             <div class="card-body items-center text-center py-12">
                 <div class="text-6xl mb-4">💀</div>
@@ -122,7 +113,6 @@
 
     </div>
 
-    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -146,7 +136,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 拗音 36 音
         const youonData = [
             { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
             { kana: 'しゃ', romaji: 'sha' }, { kana: 'しゅ', romaji: 'shu' }, { kana: 'しょ', romaji: 'sho' },
@@ -171,7 +160,7 @@
         let phase2CurrentDone = 0;
         
         let youonExamLearned = []; 
-        let youonExamMistakes = {}; // 新增：拗音專屬常錯字庫
+        let youonExamMistakes = {}; 
         let currentRunFailed = false;
 
         const DOM = {
@@ -196,7 +185,37 @@
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
-        // 紀錄通關次數
+        // --- 本地狀態儲存機制 (拗音版，鍵值使用 youon) ---
+        function saveLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            let q = [...phase1Queue];
+            if (currentPhase === 1 && currentTarget) {
+                if (!q.some(item => item.kana === currentTarget.kana)) {
+                    q.push(currentTarget);
+                }
+            }
+
+            const state = {
+                currentPhase,
+                phase1Queue: q,
+                weakList,
+                phase2Counts,
+                phase2TotalNeeded,
+                phase2CurrentDone,
+                currentRunFailed
+            };
+            localStorage.setItem(`exam_state_youon_${user.uid}`, JSON.stringify(state));
+        }
+
+        function clearLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            localStorage.removeItem(`exam_state_youon_${user.uid}`);
+        }
+        // -------------------------------------------------
+
         async function recordClearCount() {
             const user = auth.currentUser;
             if (!user) return;
@@ -246,6 +265,7 @@
             if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
                 youonExamLearned = [];
                 await saveYouonExamProgress();
+                clearLocalState();
                 window.location.reload();
             }
         });
@@ -284,10 +304,35 @@
         }
 
         function initGame() {
+            const user = auth.currentUser;
+            if (user) {
+                const savedStr = localStorage.getItem(`exam_state_youon_${user.uid}`);
+                if (savedStr) {
+                    const state = JSON.parse(savedStr);
+                    currentPhase = state.currentPhase;
+                    phase1Queue = state.phase1Queue;
+                    weakList = state.weakList;
+                    phase2Counts = state.phase2Counts;
+                    phase2TotalNeeded = state.phase2TotalNeeded;
+                    phase2CurrentDone = state.phase2CurrentDone;
+                    currentRunFailed = state.currentRunFailed;
+
+                    if (currentPhase === 1) {
+                        nextPhase1();
+                    } else {
+                        DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+                        DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+                        DOM.phaseTitle.classList.replace('text-success', 'text-error');
+                        DOM.progressBar.classList.replace('progress-success', 'progress-error');
+                        nextPhase2();
+                    }
+                    return;
+                }
+            }
+
             currentPhase = 1;
             weakList = [];
             currentRunFailed = false;
-            // 拗音一律以日文字體 (kana) 作為主鍵來判斷與儲存
             const unlearned = youonData.filter(item => !youonExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
@@ -313,6 +358,7 @@
             }
 
             currentTarget = phase1Queue.pop();
+            saveLocalState();
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus();
@@ -323,6 +369,7 @@
             
             if (weakList.length === 0) {
                 recordClearCount();
+                clearLocalState();
                 DOM.completePanel.classList.remove('hidden');
             } else {
                 DOM.intermissionPanel.classList.remove('hidden');
@@ -352,6 +399,7 @@
             phase2CurrentDone = 0;
 
             currentTarget = null; 
+            saveLocalState();
             nextPhase2();
         });
 
@@ -366,13 +414,14 @@
                 DOM.gamePanel.classList.add('hidden');
                 
                 if (currentRunFailed) {
-                    youonExamLearned = []; // 失敗，無情歸零
+                    youonExamLearned = []; 
                     saveYouonExamProgress();
                     DOM.failedPanel.classList.remove('hidden');
                 } else {
                     recordClearCount();
                     DOM.completePanel.classList.remove('hidden');
                 }
+                clearLocalState();
                 return;
             }
 
@@ -399,6 +448,8 @@
                     youonExamLearned.push(currentTarget.kana);
                     saveYouonExamProgress(); 
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase1, 200);
             } else {
                 phase2Counts[currentTarget.kana]--;
@@ -410,6 +461,8 @@
                         saveYouonExamProgress(); 
                     }
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 200);
             }
         }
@@ -422,18 +475,20 @@
                 if (!weakList.some(item => item.kana === currentTarget.kana)) {
                     weakList.push(currentTarget);
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase1, 300);
             } else {
-                // 【第二階段答錯：一錯即死邏輯】
                 currentRunFailed = true; 
                 
-                // 將錯字寫入專屬的拗音常錯字庫
                 youonExamMistakes[currentTarget.kana] = (youonExamMistakes[currentTarget.kana] || 0) + 1;
                 
                 phase2CurrentDone += phase2Counts[currentTarget.kana];
                 phase2Counts[currentTarget.kana] = 0; 
                 
                 saveYouonExamProgress(); 
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 300);
             }
         }
