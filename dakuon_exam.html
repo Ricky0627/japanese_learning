@@ -85,11 +85,11 @@
                 
                 <div id="weak-list" class="flex flex-wrap gap-3 justify-center mb-8"></div>
 
-                <div class="alert alert-info shadow-sm mb-6 text-sm">
-                    <span>第二階段規則：這些不熟的字，每個都必須答對 2 次才算真正過關！</span>
+                <div class="alert alert-error shadow-sm mb-6 text-sm">
+                    <span>⚠️ 地獄規則：這些不熟的字必須成功盲答 2 次。一旦錯任何 1 次，本次測驗判定失敗且進度重置！</span>
                 </div>
 
-                <button id="btn-start-phase2" class="btn btn-secondary w-full max-w-xs">開始第二階段特訓</button>
+                <button id="btn-start-phase2" class="btn btn-secondary w-full max-w-xs">開始地獄強化</button>
             </div>
         </div>
 
@@ -102,13 +102,26 @@
             </div>
         </div>
 
+        <!-- 💀 失敗重置畫面 -->
+        <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">💀</div>
+                <h2 class="text-3xl font-bold text-error mb-2">地獄測驗失敗...</h2>
+                <p class="text-gray-500 mb-8">可惜這次沒有通過弱點考驗，<strong class="text-error">盲測進度已全數重置</strong>。<br>常錯字已記錄到首頁排行榜，請再接再厲！</p>
+                <a href="index.html" class="btn btn-error text-white">回首頁看常錯名單</a>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
+        // ==========================================
+        // ⚠️ 必填：請貼上你的 Firebase 金鑰
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMRlVXZ9sGxBCX6V9Nc2nz942JxD01WIs",
             authDomain: "japanese-f3239.firebaseapp.com",
@@ -118,6 +131,7 @@
             appId: "1:201568474978:web:3b406e78b4561c78a0fe3b",
             measurementId: "G-9BYMSD88D9"
         };
+        // ==========================================
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -138,13 +152,17 @@
         let phase2Counts = {};
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
-        let dakuonExamLearned = []; // 裡面改存日文字型如 ["が", "ぢ"]
+        
+        let dakuonExamLearned = []; 
+        let dakuonExamMistakes = {}; // 紀錄常錯字 { "が": 3, "ぢ": 5 }
+        let currentRunFailed = false;
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
             gamePanel: document.getElementById('game-panel'),
             intermissionPanel: document.getElementById('intermission-panel'),
             completePanel: document.getElementById('complete-panel'),
+            failedPanel: document.getElementById('failed-panel'),
             displayEmail: document.getElementById('display-email'),
             btnLogout: document.getElementById('btn-logout'),
             btnReset: document.getElementById('btn-reset'),
@@ -160,6 +178,17 @@
             btnStartPhase2: document.getElementById('btn-start-phase2'),
             syncStatus: document.getElementById('cloud-sync-status')
         };
+
+        // 紀錄通關次數
+        async function recordClearCount() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), {
+                    dakuonExamClears: increment(1) 
+                }, { merge: true });
+            } catch (error) { console.error("次數更新失敗", error); }
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -189,7 +218,7 @@
             const pw = document.getElementById('password').value;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                await setDoc(doc(db, "users_progress", cred.user.uid), { dakuonExamLearned: [] }, { merge: true });
+                await setDoc(doc(db, "users_progress", cred.user.uid), { dakuonExamLearned: [], dakuonExamMistakes: {} }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
         });
@@ -207,8 +236,10 @@
         async function loadDakuonExamProgress(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().dakuonExamLearned) {
-                    dakuonExamLearned = docSnap.data().dakuonExamLearned;
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.dakuonExamLearned) dakuonExamLearned = data.dakuonExamLearned;
+                    if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
                 }
             } catch (error) { console.error("載入失敗", error); }
         }
@@ -218,7 +249,10 @@
             if (!user) return;
             DOM.syncStatus.textContent = "儲存中...";
             try {
-                await setDoc(doc(db, "users_progress", user.uid), { dakuonExamLearned: dakuonExamLearned }, { merge: true });
+                await setDoc(doc(db, "users_progress", user.uid), { 
+                    dakuonExamLearned: dakuonExamLearned,
+                    dakuonExamMistakes: dakuonExamMistakes
+                }, { merge: true });
                 DOM.syncStatus.textContent = "已與雲端同步 ✓";
             } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
         }
@@ -235,7 +269,8 @@
         function initGame() {
             currentPhase = 1;
             weakList = [];
-            // 【方案一修改】使用 item.kana 進行進度過濾
+            currentRunFailed = false;
+            // 濁音已改用 item.kana 過濾
             const unlearned = dakuonData.filter(item => !dakuonExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
@@ -270,13 +305,14 @@
             DOM.gamePanel.classList.add('hidden');
             
             if (weakList.length === 0) {
+                recordClearCount();
                 DOM.completePanel.classList.remove('hidden');
             } else {
                 DOM.intermissionPanel.classList.remove('hidden');
                 DOM.weakListContainer.innerHTML = '';
                 weakList.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = "bg-warning/20 border border-warning text-warning-content rounded-lg px-4 py-2 text-center";
+                    card.className = "bg-error/20 border border-error text-error-content rounded-lg px-4 py-2 text-center";
                     card.innerHTML = `<div class="text-2xl font-bold">${item.kana}</div><div class="text-sm opacity-80">${item.romaji}</div>`;
                     DOM.weakListContainer.appendChild(card);
                 });
@@ -287,13 +323,13 @@
             currentPhase = 2;
             DOM.intermissionPanel.classList.add('hidden');
             DOM.gamePanel.classList.remove('hidden');
-            DOM.phaseTitle.textContent = "🔥 第二階段：弱點強化特訓";
-            DOM.phaseDesc.textContent = "每個字必須成功答對 2 次！";
-            DOM.phaseTitle.classList.replace('text-secondary', 'text-warning');
-            DOM.progressBar.classList.replace('progress-secondary', 'progress-warning');
+            
+            DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+            DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+            DOM.phaseTitle.classList.replace('text-secondary', 'text-error');
+            DOM.progressBar.classList.replace('progress-secondary', 'progress-error');
 
             phase2Counts = {};
-            // 【方案一修改】計數器改以日文字體為主鍵
             weakList.forEach(item => { phase2Counts[item.kana] = 2; });
             phase2TotalNeeded = weakList.length * 2;
             phase2CurrentDone = 0;
@@ -311,7 +347,16 @@
 
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
-                DOM.completePanel.classList.remove('hidden');
+                
+                // 結算：如果有錯，就是失敗並重置進度
+                if (currentRunFailed) {
+                    dakuonExamLearned = []; 
+                    saveDakuonExamProgress();
+                    DOM.failedPanel.classList.remove('hidden');
+                } else {
+                    recordClearCount();
+                    DOM.completePanel.classList.remove('hidden');
+                }
                 return;
             }
 
@@ -334,7 +379,6 @@
             setTimeout(() => DOM.kanaCard.classList.remove('success-anim'), 300);
 
             if (currentPhase === 1) {
-                // 【方案一修改】改將 currentTarget.kana 存檔
                 if (!dakuonExamLearned.includes(currentTarget.kana)) {
                     dakuonExamLearned.push(currentTarget.kana);
                     saveDakuonExamProgress(); 
@@ -344,6 +388,7 @@
                 phase2Counts[currentTarget.kana]--;
                 phase2CurrentDone++;
                 
+                // 第二階段完全答對，安全存入進度
                 if (phase2Counts[currentTarget.kana] === 0) {
                     if (!dakuonExamLearned.includes(currentTarget.kana)) {
                         dakuonExamLearned.push(currentTarget.kana);
@@ -364,6 +409,16 @@
                 }
                 setTimeout(nextPhase1, 300);
             } else {
+                // 【第二階段答錯：一錯即死邏輯】
+                currentRunFailed = true; 
+                
+                // 這裡我們直接用 kana 紀錄，避免 じ / ぢ 混在一起
+                dakuonExamMistakes[currentTarget.kana] = (dakuonExamMistakes[currentTarget.kana] || 0) + 1;
+                
+                phase2CurrentDone += phase2Counts[currentTarget.kana];
+                phase2Counts[currentTarget.kana] = 0; // 剔除該字不給考
+                
+                saveDakuonExamProgress(); 
                 setTimeout(nextPhase2, 300);
             }
         }
@@ -387,6 +442,7 @@
         DOM.btnSkip.addEventListener('click', () => {
             if (currentTarget) handleWrong();
         });
+
     </script>
 </body>
 </html>
