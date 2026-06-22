@@ -102,7 +102,6 @@
             </div>
         </div>
 
-        <!-- 💀 失敗重置畫面 -->
         <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
             <div class="card-body items-center text-center py-12">
                 <div class="text-6xl mb-4">💀</div>
@@ -140,7 +139,7 @@
         const dakuonData = [
             { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
             { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
-            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'ji' }, { kana: 'づ', romaji: 'zu' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'di' }, { kana: 'づ', romaji: 'du' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
             { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
             { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
         ];
@@ -154,7 +153,7 @@
         let phase2CurrentDone = 0;
         
         let dakuonExamLearned = []; 
-        let dakuonExamMistakes = {}; // 紀錄常錯字 { "が": 3, "ぢ": 5 }
+        let dakuonExamMistakes = {}; 
         let currentRunFailed = false;
 
         const DOM = {
@@ -179,7 +178,37 @@
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
-        // 紀錄通關次數
+        // --- 核心新增：本地狀態儲存機制 (濁音版，鍵值使用 dakuon) ---
+        function saveLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            let q = [...phase1Queue];
+            if (currentPhase === 1 && currentTarget) {
+                if (!q.some(item => item.kana === currentTarget.kana)) {
+                    q.push(currentTarget);
+                }
+            }
+
+            const state = {
+                currentPhase,
+                phase1Queue: q,
+                weakList,
+                phase2Counts,
+                phase2TotalNeeded,
+                phase2CurrentDone,
+                currentRunFailed
+            };
+            localStorage.setItem(`exam_state_dakuon_${user.uid}`, JSON.stringify(state));
+        }
+
+        function clearLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            localStorage.removeItem(`exam_state_dakuon_${user.uid}`);
+        }
+        // -----------------------------------------------------------
+
         async function recordClearCount() {
             const user = auth.currentUser;
             if (!user) return;
@@ -229,6 +258,7 @@
             if (confirm("確定要將測驗進度歸零重新開始嗎？這個動作無法復原喔！")) {
                 dakuonExamLearned = [];
                 await saveDakuonExamProgress();
+                clearLocalState(); // 清除本地紀錄
                 window.location.reload();
             }
         });
@@ -267,10 +297,35 @@
         }
 
         function initGame() {
+            const user = auth.currentUser;
+            if (user) {
+                const savedStr = localStorage.getItem(`exam_state_dakuon_${user.uid}`);
+                if (savedStr) {
+                    const state = JSON.parse(savedStr);
+                    currentPhase = state.currentPhase;
+                    phase1Queue = state.phase1Queue;
+                    weakList = state.weakList;
+                    phase2Counts = state.phase2Counts;
+                    phase2TotalNeeded = state.phase2TotalNeeded;
+                    phase2CurrentDone = state.phase2CurrentDone;
+                    currentRunFailed = state.currentRunFailed;
+
+                    if (currentPhase === 1) {
+                        nextPhase1();
+                    } else {
+                        DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+                        DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+                        DOM.phaseTitle.classList.replace('text-secondary', 'text-error');
+                        DOM.progressBar.classList.replace('progress-secondary', 'progress-error');
+                        nextPhase2();
+                    }
+                    return;
+                }
+            }
+
             currentPhase = 1;
             weakList = [];
             currentRunFailed = false;
-            // 濁音已改用 item.kana 過濾
             const unlearned = dakuonData.filter(item => !dakuonExamLearned.includes(item.kana));
             
             if (unlearned.length === 0) {
@@ -296,6 +351,7 @@
             }
 
             currentTarget = phase1Queue.pop();
+            saveLocalState();
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus();
@@ -306,6 +362,7 @@
             
             if (weakList.length === 0) {
                 recordClearCount();
+                clearLocalState();
                 DOM.completePanel.classList.remove('hidden');
             } else {
                 DOM.intermissionPanel.classList.remove('hidden');
@@ -335,6 +392,7 @@
             phase2CurrentDone = 0;
 
             currentTarget = null; 
+            saveLocalState();
             nextPhase2();
         });
 
@@ -348,7 +406,6 @@
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
                 
-                // 結算：如果有錯，就是失敗並重置進度
                 if (currentRunFailed) {
                     dakuonExamLearned = []; 
                     saveDakuonExamProgress();
@@ -357,6 +414,7 @@
                     recordClearCount();
                     DOM.completePanel.classList.remove('hidden');
                 }
+                clearLocalState();
                 return;
             }
 
@@ -383,18 +441,21 @@
                     dakuonExamLearned.push(currentTarget.kana);
                     saveDakuonExamProgress(); 
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase1, 200);
             } else {
                 phase2Counts[currentTarget.kana]--;
                 phase2CurrentDone++;
                 
-                // 第二階段完全答對，安全存入進度
                 if (phase2Counts[currentTarget.kana] === 0) {
                     if (!dakuonExamLearned.includes(currentTarget.kana)) {
                         dakuonExamLearned.push(currentTarget.kana);
                         saveDakuonExamProgress(); 
                     }
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 200);
             }
         }
@@ -407,18 +468,19 @@
                 if (!weakList.some(item => item.kana === currentTarget.kana)) {
                     weakList.push(currentTarget);
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase1, 300);
             } else {
-                // 【第二階段答錯：一錯即死邏輯】
                 currentRunFailed = true; 
-                
-                // 這裡我們直接用 kana 紀錄，避免 じ / ぢ 混在一起
                 dakuonExamMistakes[currentTarget.kana] = (dakuonExamMistakes[currentTarget.kana] || 0) + 1;
                 
                 phase2CurrentDone += phase2Counts[currentTarget.kana];
-                phase2Counts[currentTarget.kana] = 0; // 剔除該字不給考
-                
+                phase2Counts[currentTarget.kana] = 0; 
                 saveDakuonExamProgress(); 
+                
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 300);
             }
         }
