@@ -51,10 +51,10 @@
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">按照順序完成全套 9 階段特訓，精通所有日文基礎發音！</p>
+                <p class="text-gray-500">完成全套 9 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <!-- 功能卡片網格 (完美的 3x3 九宮格排版) -->
+            <!-- 功能卡片網格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- 卡片 1 -->
@@ -145,7 +145,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片 5 (New) -->
+                <!-- 卡片 5 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -167,7 +167,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片 6 (New) -->
+                <!-- 卡片 6 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -279,7 +279,7 @@
                     </div>
                 </div>
 
-                <!-- 拗音錯字 (綠) - New -->
+                <!-- 拗音錯字 (綠) -->
                 <div id="youon-mistakes-panel" class="mt-8 hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-success">
                         <span>🌟</span> 拗音常錯排行榜
@@ -287,6 +287,18 @@
                     <div class="bg-base-100 rounded-box p-4 shadow-sm border border-success/30">
                         <div id="youon-mistakes-container" class="flex flex-wrap gap-2"></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 📌 我的專屬標註區 (New!) -->
+            <div id="bookmarks-panel" class="mt-4 hidden">
+                <div class="divider"></div> 
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-primary">
+                    <span>📌</span> 我的專屬標註區
+                </h2>
+                <div class="bg-base-100 rounded-box p-6 shadow-sm border border-primary/30">
+                    <p class="text-sm text-gray-400 mb-4">你在各項特訓中手動釘選的字都會集中在這裡：</p>
+                    <div id="bookmarks-container" class="flex flex-wrap gap-3"></div>
                 </div>
             </div>
 
@@ -317,6 +329,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // --- 所有題庫資料 (供反查羅馬拼音用) ---
         const gojuonData = [
             { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
@@ -329,6 +342,29 @@
             { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
+        const dakuonData = [
+            { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
+            { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'di' }, { kana: 'づ', romaji: 'du' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
+            { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
+        ];
+        const youonData = [
+            { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
+            { kana: 'しゃ', romaji: 'sya' }, { kana: 'しゅ', romaji: 'syu' }, { kana: 'しょ', romaji: 'syo' },
+            { kana: 'ちゃ', romaji: 'cha' }, { kana: 'ちゅ', romaji: 'chu' }, { kana: 'ちょ', romaji: 'cho' },
+            { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
+            { kana: 'ひゃ', romaji: 'hya' }, { kana: 'ひゅ', romaji: 'hyu' }, { kana: 'ひょ', romaji: 'hyo' },
+            { kana: 'みゃ', romaji: 'mya' }, { kana: 'みゅ', romaji: 'myu' }, { kana: 'みょ', romaji: 'myo' },
+            { kana: 'りゃ', romaji: 'rya' }, { kana: 'りゅ', romaji: 'ryu' }, { kana: 'りょ', romaji: 'ryo' },
+            { kana: 'ぎゃ', romaji: 'gya' }, { kana: 'ぎゅ', romaji: 'gyu' }, { kana: 'ぎょ', romaji: 'gyo' },
+            { kana: 'じゃ', romaji: 'ja' },  { kana: 'じゅ', romaji: 'ju' },  { kana: 'じょ', romaji: 'jo' },
+            { kana: 'ぢゃ', romaji: 'dya' }, { kana: 'ぢゅ', romaji: 'dyu' }, { kana: 'ぢょ', romaji: 'dyo' },
+            { kana: 'びゃ', romaji: 'bya' }, { kana: 'びゅ', romaji: 'byu' }, { kana: 'びょ', romaji: 'byo' },
+            { kana: 'ぴゃ', romaji: 'pya' }, { kana: 'ぴゅ', romaji: 'pyu' }, { kana: 'ぴょ', romaji: 'pyo' }
+        ];
+        const allKanaData = [...gojuonData, ...dakuonData, ...youonData];
+        // ------------------------------------------
 
         onAuthStateChanged(auth, async (user) => {
             const authPanel = document.getElementById('auth-panel');
@@ -365,12 +401,12 @@
 
                 let examMistakes = {};
                 let dakuonExamMistakes = {};
-                let youonExamMistakes = {}; // 新增：接取拗音常錯字
+                let youonExamMistakes = {}; 
+                let bookmarks = []; // 📌 讀取標註清單
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // 學習進度長度
                     learnedCount = (data.learned || []).length;
                     examLearnedCount = (data.examLearned || []).length;
                     dakuonLearnedCount = (data.dakuonLearned || []).length;
@@ -381,7 +417,6 @@
                     youonLearnedCount = (data.youonLearned || []).length;
                     youonExamLearnedCount = (data.youonExamLearned || []).length;
 
-                    // 通關次數
                     gojuonClears = data.gojuonClears || 0;
                     examClears = data.examClears || 0;
                     dakuonClears = data.dakuonClears || 0;
@@ -392,10 +427,31 @@
                     youonClears = data.youonClears || 0;
                     youonExamClears = data.youonExamClears || 0;
 
-                    // 錯字字典
                     if (data.examMistakes) examMistakes = data.examMistakes;
                     if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
                     if (data.youonExamMistakes) youonExamMistakes = data.youonExamMistakes;
+                    
+                    if (data.bookmarks) bookmarks = data.bookmarks;
+                }
+
+                // --- 📌 渲染【專屬標註區】 ---
+                const bookmarksPanel = document.getElementById('bookmarks-panel');
+                const bookmarksContainer = document.getElementById('bookmarks-container');
+                
+                if (bookmarks.length > 0) {
+                    bookmarksPanel.classList.remove('hidden');
+                    bookmarksContainer.innerHTML = '';
+                    bookmarks.forEach(kana => {
+                        const kanaObj = allKanaData.find(k => k.kana === kana);
+                        const romaji = kanaObj ? kanaObj.romaji : '';
+                        
+                        const badge = document.createElement('div');
+                        badge.className = "badge badge-primary badge-outline badge-lg gap-2 p-4 text-xl shadow-sm font-bold bg-base-100";
+                        badge.innerHTML = `${kana} <span class="text-sm opacity-60 font-mono">${romaji}</span>`;
+                        bookmarksContainer.appendChild(badge);
+                    });
+                } else {
+                    bookmarksPanel.classList.add('hidden');
                 }
 
                 // --- 渲染【清音】常錯字 ---
@@ -430,7 +486,7 @@
                     });
                 } else { dakuonMistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【拗音】常錯字 (New) ---
+                // --- 渲染【拗音】常錯字 ---
                 const youonMistakesPanel = document.getElementById('youon-mistakes-panel');
                 const youonMistakesContainer = document.getElementById('youon-mistakes-container');
                 const youonMistakeEntries = Object.entries(youonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -456,7 +512,7 @@
                 document.getElementById('youon-clears').textContent = youonClears;
                 document.getElementById('youon-exam-clears').textContent = youonExamClears;
 
-                // 換算進度百分比 (清音46, 濁音25, 拗音36, 魔王71)
+                // 換算進度百分比 
                 const gojuonPercentage = Math.round((learnedCount / 46) * 100);
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
                 const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
@@ -467,7 +523,7 @@
                 const youonPercentage = Math.round((youonLearnedCount / 36) * 100);
                 const youonExamPercentage = Math.round((youonExamLearnedCount / 36) * 100);
 
-                // 更新卡片 1-4
+                // 更新卡片 
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
                 document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
@@ -484,7 +540,6 @@
                 document.getElementById('dakuon-exam-bar').value = dakuonExamPercentage;
                 document.getElementById('dakuon-exam-count').textContent = `精熟度: ${dakuonExamLearnedCount} / 25 音`;
 
-                // 更新卡片 5-6 (拗音)
                 document.getElementById('youon-percent').textContent = `${youonPercentage}%`;
                 document.getElementById('youon-bar').value = youonPercentage;
                 document.getElementById('youon-count').textContent = `已掌握: ${youonLearnedCount} / 36 音`;
@@ -493,7 +548,6 @@
                 document.getElementById('youon-exam-bar').value = youonExamPercentage;
                 document.getElementById('youon-exam-count').textContent = `精熟度: ${youonExamLearnedCount} / 36 音`;
                 
-                // 更新卡片 7-9 (尋字與魔王)
                 document.getElementById('reverse-percent').textContent = `${reversePercentage}%`;
                 document.getElementById('reverse-bar').value = reversePercentage;
                 document.getElementById('reverse-count').textContent = `尋字力: ${reverseLearnedCount} / 46 音`;
@@ -527,7 +581,7 @@
                 await setDoc(doc(db, "users_progress", cred.user.uid), { 
                     learned: [], examLearned: [], dakuonLearned: [], dakuonExamLearned: [], finalExamLearned: [], 
                     reverseLearned: [], dakuonReverseLearned: [], youonLearned: [], youonExamLearned: [],
-                    examMistakes: {}, dakuonExamMistakes: {}, youonExamMistakes: {} 
+                    examMistakes: {}, dakuonExamMistakes: {}, youonExamMistakes: {}, bookmarks: []
                 }, { merge: true });
                 alert('註冊成功！');
             } catch (error) { alert('註冊失敗: ' + error.message); }
