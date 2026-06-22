@@ -127,24 +127,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 36 拗音完整資料庫
+        // 完美乾淨校對版 36 拗音資料庫
         const youonData = [
             { base1: 'き', base2: 'ゃ', kana: 'きゃ', romaji: 'kya' }, { base1: 'き', base2: 'ゅ', kana: 'きゅ', romaji: 'kyu' }, { base1: 'き', base2: 'ょ', kana: 'きょ', romaji: 'kyo' },
-            { base1: 'し', base2: 'ゃ', kana: 'しゃ', romaji: 'sha' }, { base1: 'し', base2: 'ゅ', kana: 'しゅ', romaji: 'shu' }, { base1: 'し', base2: 'ょ', kana: 'しょ', romaji: 'sho' },
+            { base1: 'し', base2: 'ゃ', kana: 'しゃ', romaji: 'sya' }, { base1: 'し', base2: 'ゅ', kana: 'しゅ', romaji: 'syu' }, { base1: 'し', base2: 'ょ', kana: 'しょ', romaji: 'syo' },
             { base1: 'ち', base2: 'ゃ', kana: 'ちゃ', romaji: 'cha' }, { base1: 'ち', base2: 'ゅ', kana: 'ちゅ', romaji: 'chu' }, { base1: 'ち', base2: 'ょ', kana: 'ちょ', romaji: 'cho' },
-            { base1: 'に', base2: 'ゃ', kana: 'にゃ', romaji: 'nya' }, { base1: 'に', base2: 'ゅ', kana: 'niゅ', kana: 'にゅ', romaji: 'nyu' }, { base1: 'に', base2: 'ょ', kana: 'にょ', romaji: 'nyo' },
+            { base1: 'に', base2: 'ゃ', kana: 'にゃ', romaji: 'nya' }, { base1: 'に', base2: 'ゅ', kana: 'にゅ', romaji: 'nyu' }, { base1: 'に', base2: 'ょ', kana: 'にょ', romaji: 'nyo' },
             { base1: 'ひ', base2: 'ゃ', kana: 'ひゃ', romaji: 'hya' }, { base1: 'ひ', base2: 'ゅ', kana: 'ひゅ', romaji: 'hyu' }, { base1: 'ひ', base2: 'ょ', kana: 'ひょ', romaji: 'hyo' },
             { base1: 'み', base2: 'ゃ', kana: 'みゃ', romaji: 'mya' }, { base1: 'み', base2: 'ゅ', kana: 'みゅ', romaji: 'myu' }, { base1: 'み', base2: 'ょ', kana: 'みょ', romaji: 'myo' },
             { base1: 'り', base2: 'ゃ', kana: 'りゃ', romaji: 'rya' }, { base1: 'り', base2: 'ゅ', kana: 'りゅ', romaji: 'ryu' }, { base1: 'り', base2: 'ょ', kana: 'りょ', romaji: 'ryo' },
-            { base1: 'ぎ', base2: 'ゃ', kana: 'ぎゃ', romaji: 'gya' }, { base1: 'ぎ', base2: 'ゅ', kana: 'ぎゅ', romaji: 'gyu' }, { base1: 'ぎ', base2: 'ょ', kana: 'ぎょ', romaji: 'go' },
-            { base1: 'じ', base2: 'ゃ', kana: 'じゃ', romaji: 'ja' }, { base1: 'じ', base2: 'ゅ', kana: 'じゅ', romaji: 'ju' }, { base1: 'じ', base2: 'ょ', kana: 'じょ', romaji: 'jo' },
+            { base1: 'ぎ', base2: 'ゃ', kana: 'ぎゃ', romaji: 'gya' }, { base1: 'ぎ', base2: 'ゅ', kana: 'ぎゅ', romaji: 'gyu' }, { base1: 'ぎ', base2: 'ょ', kana: 'ぎょ', romaji: 'gyo' },
+            { base1: 'じ', base2: 'ゃ', kana: 'じゃ', romaji: 'ja' },  { base1: 'じ', base2: 'ゅ', kana: 'じゅ', romaji: 'ju' },  { base1: 'じ', base2: 'ょ', kana: 'じょ', romaji: 'jo' },
             { base1: 'ぢ', base2: 'ゃ', kana: 'ぢゃ', romaji: 'dya' }, { base1: 'ぢ', base2: 'ゅ', kana: 'ぢゅ', romaji: 'dyu' }, { base1: 'ぢ', base2: 'ょ', kana: 'ぢょ', romaji: 'dyo' },
             { base1: 'び', base2: 'ゃ', kana: 'びゃ', romaji: 'bya' }, { base1: 'び', base2: 'ゅ', kana: 'びゅ', romaji: 'byu' }, { base1: 'び', base2: 'ょ', kana: 'びょ', romaji: 'byo' },
             { base1: 'ぴ', base2: 'ゃ', kana: 'ぴゃ', romaji: 'pya' }, { base1: 'ぴ', base2: 'ゅ', kana: 'ぴゅ', romaji: 'pyu' }, { base1: 'ぴ', base2: 'ょ', kana: 'ぴょ', romaji: 'pyo' }
         ];
-
-        // 修正資料庫中微小的羅馬字拼寫對照 (ぎょ為 gyo)
-        youonData[23].romaji = 'gyo';
 
         let youonLearned = [];     
         let currentTarget = null;    
@@ -326,7 +323,6 @@
                     return nextQuestion(); 
                 }
 
-                // 方案一：使用日文字型 (kana) 進行雲端比對過濾
                 const unlearned = youonData.filter(item => 
                     !youonLearned.includes(item.kana) && 
                     !recentBatch.some(r => r.kana === item.kana)
@@ -352,7 +348,6 @@
                 playKanaAudio(false); 
             }
 
-            // 更新畫面資料
             DOM.baseKana1.textContent = currentTarget.base1;
             DOM.baseKana2.textContent = currentTarget.base2;
             DOM.learnKana.textContent = currentTarget.kana;
@@ -461,4 +456,4 @@
         });
     </script>
 </body>
-</html>  
+</html>
