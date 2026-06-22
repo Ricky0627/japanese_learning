@@ -113,6 +113,7 @@
 
     </div>
 
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -157,10 +158,9 @@
         let phase2TotalNeeded = 0; 
         let phase2CurrentDone = 0;
         
-        // 核心狀態變數
         let examLearned = [];
-        let examMistakes = {};      // 紀錄常錯字 { "a": 3, "ka": 5 }
-        let currentRunFailed = false; // 紀錄這局測驗是否已經失敗
+        let examMistakes = {};      
+        let currentRunFailed = false; 
 
         const DOM = {
             authPanel: document.getElementById('auth-panel'),
@@ -184,7 +184,38 @@
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
-        // 紀錄通關次數
+        // --- 核心新增：本地狀態儲存機制 ---
+        function saveLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            // 如果還在題庫中，把目前這題塞回存檔隊列，確保重新整理時不會漏掉
+            let q = [...phase1Queue];
+            if (currentPhase === 1 && currentTarget) {
+                if (!q.some(item => item.romaji === currentTarget.romaji)) {
+                    q.push(currentTarget);
+                }
+            }
+
+            const state = {
+                currentPhase,
+                phase1Queue: q,
+                weakList,
+                phase2Counts,
+                phase2TotalNeeded,
+                phase2CurrentDone,
+                currentRunFailed
+            };
+            localStorage.setItem(`exam_state_exam_${user.uid}`, JSON.stringify(state));
+        }
+
+        function clearLocalState() {
+            const user = auth.currentUser;
+            if (!user) return;
+            localStorage.removeItem(`exam_state_exam_${user.uid}`);
+        }
+        // ------------------------------------
+
         async function recordClearCount() {
             const user = auth.currentUser;
             if (!user) return;
@@ -234,11 +265,11 @@
             if (confirm("確定要將測驗進度歸零重新開始嗎？")) {
                 examLearned = [];
                 await saveExamData();
+                clearLocalState(); // 清除本地紀錄
                 window.location.reload();
             }
         });
 
-        // 載入進度與常錯字
         async function loadExamData(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
@@ -250,7 +281,6 @@
             } catch (error) { console.error("載入失敗", error); }
         }
 
-        // 同步進度與常錯字
         async function saveExamData() {
             const user = auth.currentUser;
             if (!user) return;
@@ -274,9 +304,35 @@
         }
 
         function initGame() {
+            const user = auth.currentUser;
+            if (user) {
+                const savedStr = localStorage.getItem(`exam_state_exam_${user.uid}`);
+                if (savedStr) {
+                    const state = JSON.parse(savedStr);
+                    currentPhase = state.currentPhase;
+                    phase1Queue = state.phase1Queue;
+                    weakList = state.weakList;
+                    phase2Counts = state.phase2Counts;
+                    phase2TotalNeeded = state.phase2TotalNeeded;
+                    phase2CurrentDone = state.phase2CurrentDone;
+                    currentRunFailed = state.currentRunFailed;
+
+                    if (currentPhase === 1) {
+                        nextPhase1();
+                    } else {
+                        DOM.phaseTitle.textContent = "💀 第二階段：地獄一命通關";
+                        DOM.phaseDesc.textContent = "每個字必須答對 2 次，一旦錯任何一次直接失敗！";
+                        DOM.phaseTitle.classList.replace('text-primary', 'text-error');
+                        DOM.progressBar.classList.replace('progress-primary', 'progress-error');
+                        nextPhase2();
+                    }
+                    return;
+                }
+            }
+
             currentPhase = 1;
             weakList = [];
-            currentRunFailed = false; // 初始化防呆
+            currentRunFailed = false; 
             const unlearned = gojuonData.filter(item => !examLearned.includes(item.romaji));
             
             if (unlearned.length === 0) {
@@ -302,6 +358,7 @@
             }
 
             currentTarget = phase1Queue.pop();
+            saveLocalState(); // 抽題後立刻存檔
             DOM.currentKana.textContent = currentTarget.kana;
             DOM.romajiInput.value = '';
             DOM.romajiInput.focus();
@@ -312,6 +369,7 @@
             
             if (weakList.length === 0) {
                 recordClearCount();
+                clearLocalState();
                 DOM.completePanel.classList.remove('hidden');
             } else {
                 DOM.intermissionPanel.classList.remove('hidden');
@@ -341,6 +399,7 @@
             phase2CurrentDone = 0;
 
             currentTarget = null; 
+            saveLocalState(); // 儲存進入第二階段的狀態
             nextPhase2();
         });
 
@@ -354,15 +413,15 @@
             if (pool.length === 0) {
                 DOM.gamePanel.classList.add('hidden');
                 
-                // 結算：如果有任何一次錯誤，就是失敗重置
                 if (currentRunFailed) {
-                    examLearned = []; // 無情重置進度
+                    examLearned = []; 
                     saveExamData();
                     DOM.failedPanel.classList.remove('hidden');
                 } else {
                     recordClearCount();
                     DOM.completePanel.classList.remove('hidden');
                 }
+                clearLocalState(); // 測驗結束，清空本地存檔
                 return;
             }
 
@@ -389,18 +448,21 @@
                     examLearned.push(currentTarget.romaji);
                     saveExamData(); 
                 }
+                currentTarget = null; 
+                saveLocalState();
                 setTimeout(nextPhase1, 200);
             } else {
                 phase2Counts[currentTarget.romaji]--;
                 phase2CurrentDone++;
                 
-                // 第二階段完全答對，安全存入進度
                 if (phase2Counts[currentTarget.romaji] === 0) {
                     if (!examLearned.includes(currentTarget.romaji)) {
                         examLearned.push(currentTarget.romaji);
                         saveExamData(); 
                     }
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 200);
             }
         }
@@ -413,19 +475,17 @@
                 if (!weakList.some(item => item.romaji === currentTarget.romaji)) {
                     weakList.push(currentTarget);
                 }
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase1, 300);
             } else {
-                // 【第二階段答錯：一錯即死邏輯】
                 currentRunFailed = true; 
-                
-                // 增加雲端常錯字次數
                 examMistakes[currentTarget.romaji] = (examMistakes[currentTarget.romaji] || 0) + 1;
-                
-                // 補齊進度條，並強制將該字計數歸零（剔除題庫不給重考）
                 phase2CurrentDone += phase2Counts[currentTarget.romaji];
-                phase2Counts[currentTarget.romaji] = 0;
-                
-                saveExamData(); // 即時寫入常錯字庫
+                phase2Counts[currentTarget.romaji] = 0; 
+                saveExamData(); 
+                currentTarget = null;
+                saveLocalState();
                 setTimeout(nextPhase2, 300);
             }
         }
