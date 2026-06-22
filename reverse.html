@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>逆向尋字測驗</title>
+    <title>逆向尋字地獄考場</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .error-anim { animation: shake 0.4s ease-in-out; background-color: oklch(var(--er) / 0.2) !important; border-color: oklch(var(--er)) !important; color: oklch(var(--er-content)) !important;}
+        .success-anim { animation: pop 0.3s ease-in-out; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .error-anim { animation: shake 0.4s ease-in-out; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         /* 讓按鍵在點擊時有凹陷的真實回饋感 */
         .kana-btn:active { transform: scale(0.9); transition: transform 0.1s; }
@@ -31,13 +33,31 @@
             </div>
         </div>
 
+        <div id="auth-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body">
+                <h2 class="card-title mb-2">請先登入以記錄測驗成績</h2>
+                <div class="form-control w-full">
+                    <label class="label"><span class="label-text">電子信箱</span></label>
+                    <input type="email" id="email" placeholder="輸入信箱..." class="input input-bordered w-full" />
+                </div>
+                <div class="form-control w-full mt-2">
+                    <label class="label"><span class="label-text">密碼</span></label>
+                    <input type="password" id="password" placeholder="輸入密碼..." class="input input-bordered w-full" />
+                </div>
+                <div class="card-actions justify-end mt-6">
+                    <button id="btn-register" class="btn btn-outline btn-secondary">建立新帳號</button>
+                    <button id="btn-login" class="btn btn-primary">登入</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 遊戲主畫面 -->
         <div id="game-panel" class="card bg-base-100 shadow-xl hidden">
             <div class="card-body items-center text-center relative">
                 
                 <button id="btn-reset" class="btn btn-xs btn-outline btn-error absolute top-6 right-6">重新開始</button>
 
-                <h2 id="phase-title" class="text-2xl font-bold text-info mb-2">🔎 逆向尋字測驗</h2>
+                <h2 id="phase-title" class="text-2xl font-bold text-info mb-2">🔎 第一階段：逆向尋字盲測</h2>
                 <p id="phase-desc" class="text-sm text-gray-500 mb-4">看上方的羅馬拼音，從下方找出對應的日文字！</p>
 
                 <!-- 進度條 -->
@@ -51,15 +71,34 @@
                 </div>
 
                 <!-- 題目顯示區 -->
-                <div class="bg-info/10 border-2 border-info rounded-2xl w-full max-w-sm h-32 flex flex-col items-center justify-center shadow-inner mb-6">
+                <div class="bg-info/10 border-2 border-info rounded-2xl w-full max-w-sm h-32 flex flex-col items-center justify-center shadow-inner mb-6 transition-colors" id="question-box">
                     <h2 id="current-romaji" class="text-7xl font-black text-info tracking-wider uppercase select-none">KA</h2>
                 </div>
 
                 <!-- 按鍵區 -->
-                <div id="button-grid" class="flex flex-wrap justify-center gap-2 sm:gap-3 w-full">
+                <div id="button-grid" class="flex flex-wrap justify-center gap-2 sm:gap-3 w-full mb-6">
                     <!-- 按鈕會由 JavaScript 動態生成在這裡 -->
                 </div>
 
+                <!-- 跳過按鈕 -->
+                <button id="btn-skip" class="btn btn-outline btn-warning w-full max-w-xs mt-2">找不到，跳過</button>
+
+            </div>
+        </div>
+
+        <!-- 第一階段結束畫面 -->
+        <div id="intermission-panel" class="card bg-base-100 shadow-xl hidden">
+            <div class="card-body items-center text-center">
+                <h2 class="text-3xl font-bold text-warning mb-2">第一階段結束</h2>
+                <p class="text-gray-500 mb-6">以下是你在測驗中找錯或跳過的字，請先記憶一下位置：</p>
+                
+                <div id="weak-list" class="flex flex-wrap gap-3 justify-center mb-8"></div>
+
+                <div class="alert alert-error shadow-sm mb-6 text-sm">
+                    <span>⚠️ 地獄規則：這些不熟的字必須連續找對 2 次。一旦錯任何 1 次，本次測驗判定失敗且進度重置！</span>
+                </div>
+
+                <button id="btn-start-phase2" class="btn btn-info text-white w-full max-w-xs">開始地獄強化</button>
             </div>
         </div>
 
@@ -73,12 +112,22 @@
             </div>
         </div>
 
+        <!-- 💀 失敗重置畫面 -->
+        <div id="failed-panel" class="card bg-base-100 shadow-xl hidden border-2 border-error">
+            <div class="card-body items-center text-center py-12">
+                <div class="text-6xl mb-4">💀</div>
+                <h2 class="text-3xl font-bold text-error mb-2">鷹眼測驗失敗...</h2>
+                <p class="text-gray-500 mb-8">可惜這次點錯了，<strong class="text-error">尋字進度已全數重置</strong>。<br>常錯字已記錄到首頁清音排行榜，請再接再厲！</p>
+                <a href="index.html" class="btn btn-error text-white">回首頁看常錯名單</a>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // ==========================================
         // ⚠️ 必填：請將下方替換成你 Firebase 控制台的金鑰
@@ -112,36 +161,81 @@
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
 
-        let reverseLearned = []; 
-        let questionQueue = [];
+        let currentPhase = 1; 
         let currentTarget = null;
-        let hasGuessedWrongThisRound = false; 
+        let phase1Queue = [];
+        let weakList = [];
+        let phase2Counts = {};
+        let phase2TotalNeeded = 0; 
+        let phase2CurrentDone = 0;
+        
+        let reverseLearned = []; 
+        let examMistakes = {}; // 共用清音盲測的常錯字庫
+        let currentRunFailed = false; 
 
         const DOM = {
+            authPanel: document.getElementById('auth-panel'),
             gamePanel: document.getElementById('game-panel'),
+            intermissionPanel: document.getElementById('intermission-panel'),
             completePanel: document.getElementById('complete-panel'),
+            failedPanel: document.getElementById('failed-panel'),
             displayEmail: document.getElementById('display-email'),
             btnLogout: document.getElementById('btn-logout'),
             btnReset: document.getElementById('btn-reset'),
+            phaseTitle: document.getElementById('phase-title'),
+            phaseDesc: document.getElementById('phase-desc'),
+            questionBox: document.getElementById('question-box'),
             currentRomaji: document.getElementById('current-romaji'),
             buttonGrid: document.getElementById('button-grid'),
+            btnSkip: document.getElementById('btn-skip'),
             progressBar: document.getElementById('progress-bar'),
             progressText: document.getElementById('progress-text'),
+            weakListContainer: document.getElementById('weak-list'),
+            btnStartPhase2: document.getElementById('btn-start-phase2'),
             syncStatus: document.getElementById('cloud-sync-status')
         };
 
-        // --- Firebase 登入與資料存取 ---
+        async function recordClearCount() {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await setDoc(doc(db, "users_progress", user.uid), {
+                    reverseClears: increment(1) 
+                }, { merge: true });
+            } catch (error) { console.error("次數更新失敗", error); }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
+                DOM.authPanel.classList.add('hidden');
                 DOM.gamePanel.classList.remove('hidden');
                 DOM.displayEmail.textContent = user.email;
                 DOM.btnLogout.classList.remove('hidden');
                 
-                await loadProgress(user.uid);
+                await loadReverseData(user.uid);
                 initGame();
             } else {
-                window.location.href = 'index.html'; 
+                DOM.authPanel.classList.remove('hidden');
+                DOM.gamePanel.classList.add('hidden');
+                DOM.displayEmail.textContent = "尚未登入";
+                DOM.btnLogout.classList.add('hidden');
             }
+        });
+
+        document.getElementById('btn-login').addEventListener('click', async () => {
+            const em = document.getElementById('email').value.trim();
+            const pw = document.getElementById('password').value;
+            try { await signInWithEmailAndPassword(auth, em, pw); } catch (error) { alert('登入失敗'); }
+        });
+
+        document.getElementById('btn-register').addEventListener('click', async () => {
+            const em = document.getElementById('email').value.trim();
+            const pw = document.getElementById('password').value;
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, em, pw);
+                await setDoc(doc(db, "users_progress", cred.user.uid), { reverseLearned: [], examMistakes: {} }, { merge: true });
+                alert('註冊成功！');
+            } catch (error) { alert('註冊失敗: ' + error.message); }
         });
 
         DOM.btnLogout.addEventListener('click', () => signOut(auth));
@@ -149,31 +243,35 @@
         DOM.btnReset.addEventListener('click', async () => {
             if (confirm("確定要將測驗進度歸零重新開始嗎？")) {
                 reverseLearned = [];
-                await saveProgress();
+                await saveReverseData();
                 window.location.reload();
             }
         });
 
-        async function loadProgress(uid) {
+        async function loadReverseData(uid) {
             try {
                 const docSnap = await getDoc(doc(db, "users_progress", uid));
-                if (docSnap.exists() && docSnap.data().reverseLearned) {
-                    reverseLearned = docSnap.data().reverseLearned;
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.reverseLearned) reverseLearned = data.reverseLearned;
+                    if (data.examMistakes) examMistakes = data.examMistakes; // 讀取共用錯字庫
                 }
             } catch (error) { console.error("載入失敗", error); }
         }
 
-        async function saveProgress() {
+        async function saveReverseData() {
             const user = auth.currentUser;
             if (!user) return;
             DOM.syncStatus.textContent = "儲存中...";
             try {
-                await setDoc(doc(db, "users_progress", user.uid), { reverseLearned: reverseLearned }, { merge: true });
+                await setDoc(doc(db, "users_progress", user.uid), { 
+                    reverseLearned: reverseLearned,
+                    examMistakes: examMistakes // 存入共用錯字庫
+                }, { merge: true });
                 DOM.syncStatus.textContent = "已與雲端同步 ✓";
             } catch (error) { DOM.syncStatus.textContent = "同步失敗 ✗"; }
         }
 
-        // --- 遊戲邏輯 ---
         function shuffleArray(array) {
             let arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -185,12 +283,7 @@
 
         function generateButtonGrid() {
             DOM.buttonGrid.innerHTML = '';
-            
-            // 【核心設計】：在畫面載入的這一刻打亂陣列，
-            // 生成後按鈕的位置就會在整場遊戲中「保持固定」，直到使用者重整網頁。
-            const shuffledButtons = shuffleArray([...gojuonData]);
-            
-            shuffledButtons.forEach(item => {
+            gojuonData.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-outline btn-lg w-14 h-14 sm:w-16 sm:h-16 text-2xl font-normal kana-btn transition-colors';
                 btn.textContent = item.kana;
@@ -202,6 +295,9 @@
         }
 
         function initGame() {
+            currentPhase = 1;
+            weakList = [];
+            currentRunFailed = false;
             const unlearned = gojuonData.filter(item => !reverseLearned.includes(item.romaji));
             
             if (unlearned.length === 0) {
@@ -210,63 +306,173 @@
                 return;
             }
 
-            // 出題順序隨機打亂
-            questionQueue = shuffleArray(unlearned); 
-            
-            // 呼叫一次畫按鍵的功能（畫完就不會再變動了）
-            generateButtonGrid(); 
-            nextQuestion();
+            phase1Queue = shuffleArray(unlearned); 
+            generateButtonGrid();
+            nextPhase1();
         }
 
-        function nextQuestion() {
+        function nextPhase1() {
             const count = reverseLearned.length;
             const total = gojuonData.length;
             DOM.progressBar.max = total;
             DOM.progressBar.value = count;
             DOM.progressText.textContent = `${count} / ${total}`;
 
-            if (questionQueue.length === 0) {
-                DOM.gamePanel.classList.add('hidden');
-                DOM.completePanel.classList.remove('hidden');
+            if (phase1Queue.length === 0) {
+                endPhase1();
                 return;
             }
 
-            hasGuessedWrongThisRound = false;
-            currentTarget = questionQueue.pop();
+            currentTarget = phase1Queue.pop();
             DOM.currentRomaji.textContent = currentTarget.romaji.toUpperCase();
+        }
+
+        function endPhase1() {
+            DOM.gamePanel.classList.add('hidden');
+            
+            if (weakList.length === 0) {
+                recordClearCount();
+                DOM.completePanel.classList.remove('hidden');
+            } else {
+                DOM.intermissionPanel.classList.remove('hidden');
+                DOM.weakListContainer.innerHTML = '';
+                weakList.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-error/20 border border-error text-error-content rounded-lg px-4 py-2 text-center";
+                    card.innerHTML = `<div class="text-2xl font-bold">${item.kana}</div><div class="text-sm opacity-80">${item.romaji}</div>`;
+                    DOM.weakListContainer.appendChild(card);
+                });
+            }
+        }
+
+        DOM.btnStartPhase2.addEventListener('click', () => {
+            currentPhase = 2;
+            DOM.intermissionPanel.classList.add('hidden');
+            DOM.gamePanel.classList.remove('hidden');
+            
+            DOM.phaseTitle.textContent = "💀 第二階段：地獄一命尋字";
+            DOM.phaseDesc.textContent = "每個字必須找對 2 次，一旦按錯任何一次直接失敗！";
+            DOM.phaseTitle.classList.replace('text-info', 'text-error');
+            DOM.progressBar.classList.replace('progress-info', 'progress-error');
+            DOM.currentRomaji.classList.replace('text-info', 'text-error');
+            DOM.questionBox.classList.replace('border-info', 'border-error');
+            DOM.questionBox.classList.replace('bg-info/10', 'bg-error/10');
+
+            phase2Counts = {};
+            weakList.forEach(item => { phase2Counts[item.romaji] = 2; });
+            phase2TotalNeeded = weakList.length * 2;
+            phase2CurrentDone = 0;
+
+            currentTarget = null; 
+            nextPhase2();
+        });
+
+        function nextPhase2() {
+            DOM.progressBar.max = phase2TotalNeeded;
+            DOM.progressBar.value = phase2CurrentDone;
+            DOM.progressText.textContent = `${phase2CurrentDone} / ${phase2TotalNeeded}`;
+
+            let pool = Object.keys(phase2Counts).filter(romaji => phase2Counts[romaji] > 0);
+
+            if (pool.length === 0) {
+                DOM.gamePanel.classList.add('hidden');
+                
+                if (currentRunFailed) {
+                    reverseLearned = []; 
+                    saveReverseData();
+                    DOM.failedPanel.classList.remove('hidden');
+                } else {
+                    recordClearCount();
+                    DOM.completePanel.classList.remove('hidden');
+                }
+                return;
+            }
+
+            let nextRomaji;
+            if (pool.length === 1) {
+                nextRomaji = pool[0];
+            } else {
+                do { nextRomaji = pool[Math.floor(Math.random() * pool.length)]; } 
+                while (currentTarget && nextRomaji === currentTarget.romaji);
+            }
+
+            currentTarget = weakList.find(item => item.romaji === nextRomaji);
+            DOM.currentRomaji.textContent = currentTarget.romaji.toUpperCase();
+        }
+
+        function handleCorrect(btnElement) {
+            if (btnElement) {
+                btnElement.classList.replace('btn-outline', currentPhase === 1 ? 'btn-info' : 'btn-error');
+                btnElement.classList.add('text-white', 'success-anim');
+            }
+
+            setTimeout(() => {
+                if (btnElement) {
+                    btnElement.classList.replace(currentPhase === 1 ? 'btn-info' : 'btn-error', 'btn-outline');
+                    btnElement.classList.remove('text-white', 'success-anim');
+                }
+
+                if (currentPhase === 1) {
+                    if (!reverseLearned.includes(currentTarget.romaji)) {
+                        reverseLearned.push(currentTarget.romaji);
+                        saveReverseData(); 
+                    }
+                    nextPhase1();
+                } else {
+                    phase2Counts[currentTarget.romaji]--;
+                    phase2CurrentDone++;
+                    
+                    if (phase2Counts[currentTarget.romaji] === 0) {
+                        if (!reverseLearned.includes(currentTarget.romaji)) {
+                            reverseLearned.push(currentTarget.romaji);
+                            saveReverseData(); 
+                        }
+                    }
+                    nextPhase2();
+                }
+            }, 300);
+        }
+
+        function handleWrong(btnElement) {
+            if (btnElement) {
+                btnElement.classList.replace('btn-outline', 'btn-error');
+                btnElement.classList.add('text-white', 'error-anim');
+            }
+
+            setTimeout(() => {
+                if (btnElement) {
+                    btnElement.classList.replace('btn-error', 'btn-outline');
+                    btnElement.classList.remove('text-white', 'error-anim');
+                }
+
+                if (currentPhase === 1) {
+                    if (!weakList.some(item => item.romaji === currentTarget.romaji)) {
+                        weakList.push(currentTarget);
+                    }
+                    nextPhase1();
+                } else {
+                    currentRunFailed = true; 
+                    // 將錯字寫入 examMistakes，與清音盲測共用同一個排行榜
+                    examMistakes[currentTarget.romaji] = (examMistakes[currentTarget.romaji] || 0) + 1;
+                    phase2CurrentDone += phase2Counts[currentTarget.romaji];
+                    phase2Counts[currentTarget.romaji] = 0; 
+                    saveReverseData(); 
+                    nextPhase2();
+                }
+            }, 300);
         }
 
         function handleGuess(clickedKana, btnElement) {
             if (clickedKana === currentTarget.kana) {
-                
-                btnElement.classList.replace('btn-outline', 'btn-info');
-                btnElement.classList.add('text-white');
-
-                if (!hasGuessedWrongThisRound) {
-                    if (!reverseLearned.includes(currentTarget.romaji)) {
-                        reverseLearned.push(currentTarget.romaji);
-                        saveProgress();
-                    }
-                } else {
-                    questionQueue.unshift(currentTarget);
-                }
-
-                // 稍微延遲後進入下一題
-                setTimeout(() => {
-                    btnElement.classList.replace('btn-info', 'btn-outline');
-                    btnElement.classList.remove('text-white');
-                    nextQuestion();
-                }, 400);
-
+                handleCorrect(btnElement);
             } else {
-                hasGuessedWrongThisRound = true; 
-                
-                btnElement.classList.add('error-anim');
-                setTimeout(() => {
-                    btnElement.classList.remove('error-anim');
-                }, 400);
+                handleWrong(btnElement);
             }
         }
+
+        DOM.btnSkip.addEventListener('click', () => {
+            if (currentTarget) handleWrong(null); 
+        });
 
     </script>
 </body>
