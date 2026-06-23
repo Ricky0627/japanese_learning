@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的五十音學習中心</title>
-    <!-- 引入 Tailwind CSS 與 DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,7 +13,6 @@
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col items-center">
 
-    <!-- 頂部導覽列 -->
     <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50 w-full px-6 flex justify-between">
         <a class="text-xl font-bold text-primary">🚀 五十音學習控制台</a>
         <div class="flex items-center gap-2">
@@ -23,10 +21,8 @@
         </div>
     </div>
 
-    <!-- 主要內容區 -->
     <div class="container mx-auto px-4 py-8 max-w-[1200px] w-full space-y-8">
         
-        <!-- 登入面板 -->
         <div id="auth-panel" class="card bg-base-100 shadow-xl max-w-md mx-auto">
             <div class="card-body">
                 <h2 class="card-title text-2xl mb-2">歡迎來到日文特訓網</h2>
@@ -47,17 +43,14 @@
             </div>
         </div>
 
-        <!-- 登入後顯示的進度牆 -->
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
-                <p class="text-gray-500">完成全套 9 階段特訓，精通所有日文基礎發音！</p>
+                <p class="text-gray-500">按照順序完成全套 9 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <!-- 功能卡片網格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <!-- 卡片 1 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-primary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -79,7 +72,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 2 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-warning flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -101,7 +93,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 3 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -123,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 4 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-error flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -145,7 +135,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 5 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -167,7 +156,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 6 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -189,7 +177,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 7 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-info flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -211,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 8 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -233,7 +219,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 9 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -257,9 +242,7 @@
 
             </div>
 
-            <!-- 🔥 3大常錯字排行榜區塊 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 清音錯字 (紅) -->
                 <div id="mistakes-panel" class="mt-8 hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-error">
                         <span class="">💀</span> 清音常錯排行榜
@@ -269,7 +252,6 @@
                     </div>
                 </div>
 
-                <!-- 濁音錯字 (紫) -->
                 <div id="dakuon-mistakes-panel" class="mt-8 hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-secondary">
                         <span>👿</span> 濁音常錯排行榜
@@ -279,7 +261,6 @@
                     </div>
                 </div>
 
-                <!-- 拗音錯字 (綠) -->
                 <div id="youon-mistakes-panel" class="mt-8 hidden">
                     <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-success">
                         <span>🌟</span> 拗音常錯排行榜
@@ -290,7 +271,6 @@
                 </div>
             </div>
 
-            <!-- 📌 我的專屬標註區 (New!) -->
             <div id="bookmarks-panel" class="mt-4 hidden">
                 <div class="divider"></div> 
                 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-primary">
@@ -305,7 +285,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -329,16 +308,16 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- 所有題庫資料 (供反查羅馬拼音用) ---
+        // 所有題庫資料 (供反查羅馬拼音用)
         const gojuonData = [
             { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
-            { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'shi' }, { kana: 'す', romaji: 'su' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
+            { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'sya' }, { kana: 'す', romaji: 'syu' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
             { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
             { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
             { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
             { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
-            { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
+            { kana: 'я', kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
             { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
@@ -353,7 +332,7 @@
             { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
             { kana: 'しゃ', romaji: 'sya' }, { kana: 'しゅ', romaji: 'syu' }, { kana: 'しょ', romaji: 'syo' },
             { kana: 'ちゃ', romaji: 'cha' }, { kana: 'ちゅ', romaji: 'chu' }, { kana: 'ちょ', romaji: 'cho' },
-            { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
+            { kana: 'にゃ', romaji: 'nya' }, { kana: 'niゅ', kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
             { kana: 'ひゃ', romaji: 'hya' }, { kana: 'ひゅ', romaji: 'hyu' }, { kana: 'ひょ', romaji: 'hyo' },
             { kana: 'みゃ', romaji: 'mya' }, { kana: 'みゅ', romaji: 'myu' }, { kana: 'みょ', romaji: 'myo' },
             { kana: 'りゃ', romaji: 'rya' }, { kana: 'りゅ', romaji: 'ryu' }, { kana: 'りょ', romaji: 'ryo' },
@@ -364,28 +343,6 @@
             { kana: 'ぴゃ', romaji: 'pya' }, { kana: 'ぴゅ', romaji: 'pyu' }, { kana: 'ぴょ', romaji: 'pyo' }
         ];
         const allKanaData = [...gojuonData, ...dakuonData, ...youonData];
-        // ------------------------------------------
-
-        onAuthStateChanged(auth, async (user) => {
-            const authPanel = document.getElementById('auth-panel');
-            const dashboardPanel = document.getElementById('dashboard-panel');
-            const displayEmail = document.getElementById('display-email');
-            const btnLogout = document.getElementById('btn-logout');
-
-            if (user) {
-                authPanel.classList.add('hidden');
-                dashboardPanel.classList.remove('hidden');
-                displayEmail.textContent = user.email;
-                btnLogout.classList.remove('hidden');
-
-                await fetchAndRenderProgress(user.uid);
-            } else {
-                authPanel.classList.remove('hidden');
-                dashboardPanel.classList.add('hidden');
-                displayEmail.textContent = "尚未登入";
-                btnLogout.classList.add('hidden');
-            }
-        });
 
         async function fetchAndRenderProgress(uid) {
             try {
@@ -402,7 +359,7 @@
                 let examMistakes = {};
                 let dakuonExamMistakes = {};
                 let youonExamMistakes = {}; 
-                let bookmarks = []; // 📌 讀取標註清單
+                let bookmarks = [];
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -430,31 +387,26 @@
                     if (data.examMistakes) examMistakes = data.examMistakes;
                     if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
                     if (data.youonExamMistakes) youonExamMistakes = data.youonExamMistakes;
-                    
                     if (data.bookmarks) bookmarks = data.bookmarks;
                 }
 
                 // --- 📌 渲染【專屬標註區】 ---
                 const bookmarksPanel = document.getElementById('bookmarks-panel');
                 const bookmarksContainer = document.getElementById('bookmarks-container');
-                
                 if (bookmarks.length > 0) {
                     bookmarksPanel.classList.remove('hidden');
                     bookmarksContainer.innerHTML = '';
                     bookmarks.forEach(kana => {
                         const kanaObj = allKanaData.find(k => k.kana === kana);
                         const romaji = kanaObj ? kanaObj.romaji : '';
-                        
                         const badge = document.createElement('div');
                         badge.className = "badge badge-primary badge-outline badge-lg gap-2 p-4 text-xl shadow-sm font-bold bg-base-100";
                         badge.innerHTML = `${kana} <span class="text-sm opacity-60 font-mono">${romaji}</span>`;
                         bookmarksContainer.appendChild(badge);
                     });
-                } else {
-                    bookmarksPanel.classList.add('hidden');
-                }
+                } else { bookmarksPanel.classList.add('hidden'); }
 
-                // --- 渲染【清音】常錯字 ---
+                // --- 渲染【清音】常錯字 (加入羅馬拼音) ---
                 const mistakesPanel = document.getElementById('mistakes-panel');
                 const mistakesContainer = document.getElementById('mistakes-container');
                 const mistakeEntries = Object.entries(examMistakes).sort((a, b) => b[1] - a[1]);
@@ -466,12 +418,13 @@
                         const kanaText = kanaObj ? kanaObj.kana : romaji;
                         const badge = document.createElement('div');
                         badge.className = "badge badge-error badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
-                        badge.innerHTML = `${kanaText} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
+                        // 💡 這裡加上了 (romaji) 標籤
+                        badge.innerHTML = `${kanaText} <span class="text-xs opacity-80 font-mono font-normal">(${romaji})</span> <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
                         mistakesContainer.appendChild(badge);
                     });
                 } else { mistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【濁音】常錯字 ---
+                // --- 渲染【濁音】常錯字 (加入羅馬拼音) ---
                 const dakuonMistakesPanel = document.getElementById('dakuon-mistakes-panel');
                 const dakuonMistakesContainer = document.getElementById('dakuon-mistakes-container');
                 const dakuonMistakeEntries = Object.entries(dakuonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -479,14 +432,17 @@
                     dakuonMistakesPanel.classList.remove('hidden');
                     dakuonMistakesContainer.innerHTML = '';
                     dakuonMistakeEntries.forEach(([kana, count]) => {
+                        const kanaObj = dakuonData.find(k => k.kana === kana);
+                        const romaji = kanaObj ? kanaObj.romaji : '';
                         const badge = document.createElement('div');
                         badge.className = "badge badge-secondary badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
-                        badge.innerHTML = `${kana} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
+                        // 💡 這裡加上了 (romaji) 標籤
+                        badge.innerHTML = `${kana} <span class="text-xs opacity-80 font-mono font-normal">(${romaji})</span> <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
                         dakuonMistakesContainer.appendChild(badge);
                     });
                 } else { dakuonMistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【拗音】常錯字 ---
+                // --- 渲染【拗音】常錯字 (加入羅馬拼音) ---
                 const youonMistakesPanel = document.getElementById('youon-mistakes-panel');
                 const youonMistakesContainer = document.getElementById('youon-mistakes-container');
                 const youonMistakeEntries = Object.entries(youonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -494,9 +450,12 @@
                     youonMistakesPanel.classList.remove('hidden');
                     youonMistakesContainer.innerHTML = '';
                     youonMistakeEntries.forEach(([kana, count]) => {
+                        const kanaObj = youonData.find(k => k.kana === kana);
+                        const romaji = kanaObj ? kanaObj.romaji : '';
                         const badge = document.createElement('div');
                         badge.className = "badge badge-success badge-lg gap-2 p-3 text-base shadow-sm font-bold text-white";
-                        badge.innerHTML = `${kana} <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
+                        // 💡 這裡加上了 (romaji) 標籤
+                        badge.innerHTML = `${kana} <span class="text-xs opacity-80 font-mono font-normal">(${romaji})</span> <span class="badge badge-xs badge-neutral text-white font-mono">${count}次</span>`;
                         youonMistakesContainer.appendChild(badge);
                     });
                 } else { youonMistakesPanel.classList.add('hidden'); }
@@ -512,7 +471,7 @@
                 document.getElementById('youon-clears').textContent = youonClears;
                 document.getElementById('youon-exam-clears').textContent = youonExamClears;
 
-                // 換算進度百分比 
+                // 換算進度百分比
                 const gojuonPercentage = Math.round((learnedCount / 46) * 100);
                 const examPercentage = Math.round((examLearnedCount / 46) * 100);
                 const dakuonPercentage = Math.round((dakuonLearnedCount / 25) * 100);
@@ -523,7 +482,7 @@
                 const youonPercentage = Math.round((youonLearnedCount / 36) * 100);
                 const youonExamPercentage = Math.round((youonExamLearnedCount / 36) * 100);
 
-                // 更新卡片 
+                // 更新卡片
                 document.getElementById('gojuon-percent').textContent = `${gojuonPercentage}%`;
                 document.getElementById('gojuon-bar').value = gojuonPercentage;
                 document.getElementById('gojuon-count').textContent = `已掌握: ${learnedCount} / 46 音`;
@@ -565,6 +524,7 @@
             }
         }
 
+        // 登入事件
         document.getElementById('btn-login').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
@@ -572,6 +532,7 @@
             try { await signInWithEmailAndPassword(auth, em, pw); } catch (error) { alert('登入失敗，請檢查帳號密碼'); }
         });
 
+        // 註冊事件
         document.getElementById('btn-register').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
