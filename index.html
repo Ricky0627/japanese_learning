@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的五十音學習中心</title>
-    <!-- 引入 Tailwind CSS 與 DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,7 +13,6 @@
 </head>
 <body class="bg-base-200 min-h-screen flex flex-col items-center">
 
-    <!-- 頂部導覽列 -->
     <div class="navbar bg-base-100 shadow-sm sticky top-0 z-50 w-full px-6 flex justify-between">
         <a class="text-xl font-bold text-primary">🚀 五十音學習控制台</a>
         <div class="flex items-center gap-2">
@@ -23,10 +21,8 @@
         </div>
     </div>
 
-    <!-- 主要內容區 -->
     <div class="container mx-auto px-4 py-8 max-w-[1200px] w-full space-y-8">
         
-        <!-- 登入面板 -->
         <div id="auth-panel" class="card bg-base-100 shadow-xl max-w-md mx-auto">
             <div class="card-body">
                 <h2 class="card-title text-2xl mb-2">歡迎來到日文特訓網</h2>
@@ -47,17 +43,14 @@
             </div>
         </div>
 
-        <!-- 登入後顯示的進度牆 -->
         <div id="dashboard-panel" class="space-y-6 hidden">
             <div>
                 <h1 class="text-3xl font-bold mb-1">今日特訓選單</h1>
                 <p class="text-gray-500">按照順序完成全套 9 階段特訓，精通所有日文基礎發音！</p>
             </div>
 
-            <!-- 功能卡片網格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                <!-- 卡片 1 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-primary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -84,7 +77,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 2 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-warning flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -111,7 +103,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 3 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -138,7 +129,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 4 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-error flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -165,7 +155,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 5 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -192,7 +181,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 6 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-success flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -219,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 7 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-info flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -246,7 +233,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 8 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-secondary flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -273,7 +259,6 @@
                     </div>
                 </div>
 
-                <!-- 卡片 9 -->
                 <div class="card bg-base-100 shadow-xl hover-card border border-transparent hover:border-accent flex flex-col justify-between">
                     <div class="card-body">
                         <div class="flex justify-between items-start">
@@ -302,40 +287,47 @@
 
             </div>
 
-            <!-- 🔥 3大常錯字排行榜區塊 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 清音錯字 (紅) -->
-                <div id="mistakes-panel" class="mt-8 hidden">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-error">
-                        <span class="">💀</span> 清音常錯排行榜
-                    </h2>
-                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-error/30">
-                        <div id="mistakes-container" class="flex flex-wrap gap-2"></div>
+                <div id="mistakes-panel" class="mt-8 hidden flex flex-col justify-between bg-base-100 rounded-box p-4 shadow-sm border border-error/30">
+                    <div>
+                        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-error">
+                            <span>💀</span> 清音常錯排行榜
+                        </h2>
+                        <div id="mistakes-container" class="flex flex-wrap gap-2 mb-4"></div>
+                    </div>
+                    <div class="border-t border-error/20 pt-3 text-center">
+                        <a href="booster.html?mode=gojuon" class="btn btn-error btn-sm text-white w-full">🚀 開始清音自我增進盲測</a>
+                        <p class="text-xs text-gray-400 mt-1 font-bold">🏆 增進通關：<span id="gojuon-booster-clears">0</span> 次</p>
                     </div>
                 </div>
 
-                <!-- 濁音錯字 (紫) -->
-                <div id="dakuon-mistakes-panel" class="mt-8 hidden">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-secondary">
-                        <span>👿</span> 濁音常錯排行榜
-                    </h2>
-                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-secondary/30">
-                        <div id="dakuon-mistakes-container" class="flex flex-wrap gap-2"></div>
+                <div id="dakuon-mistakes-panel" class="mt-8 hidden flex flex-col justify-between bg-base-100 rounded-box p-4 shadow-sm border border-secondary/30">
+                    <div>
+                        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-secondary">
+                            <span>👿</span> 濁音常錯排行榜
+                        </h2>
+                        <div id="dakuon-mistakes-container" class="flex flex-wrap gap-2 mb-4"></div>
+                    </div>
+                    <div class="border-t border-secondary/20 pt-3 text-center">
+                        <a href="booster.html?mode=dakuon" class="btn btn-secondary btn-sm text-white w-full">🚀 開始濁音自我增進盲測</a>
+                        <p class="text-xs text-gray-400 mt-1 font-bold">🏆 增進通關：<span id="dakuon-booster-clears">0</span> 次</p>
                     </div>
                 </div>
 
-                <!-- 拗音錯字 (綠) -->
-                <div id="youon-mistakes-panel" class="mt-8 hidden">
-                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-success">
-                        <span>🌟</span> 拗音常錯排行榜
-                    </h2>
-                    <div class="bg-base-100 rounded-box p-4 shadow-sm border border-success/30">
-                        <div id="youon-mistakes-container" class="flex flex-wrap gap-2"></div>
+                <div id="youon-mistakes-panel" class="mt-8 hidden flex flex-col justify-between bg-base-100 rounded-box p-4 shadow-sm border border-success/30">
+                    <div>
+                        <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-success">
+                            <span>🌟</span> 拗音常錯排行榜
+                        </h2>
+                        <div id="youon-mistakes-container" class="flex flex-wrap gap-2 mb-4"></div>
+                    </div>
+                    <div class="border-t border-success/20 pt-3 text-center">
+                        <a href="booster.html?mode=youon" class="btn btn-success text-white btn-sm w-full">🚀 開始拗音自我增進盲測</a>
+                        <p class="text-xs text-gray-400 mt-1 font-bold">🏆 增進通關：<span id="youon-booster-clears">0</span> 次</p>
                     </div>
                 </div>
             </div>
 
-            <!-- 📌 我的專屬標註區 -->
             <div id="bookmarks-panel" class="mt-4 hidden">
                 <div class="divider"></div> 
                 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 text-primary">
@@ -350,7 +342,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK 與 邏輯 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
@@ -374,7 +365,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 最乾淨的題庫資料 (供反查羅馬拼音用)
         const gojuonData = [
             { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
             { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
@@ -383,14 +373,14 @@
             { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
             { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
             { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
-            { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
+            { kana: 'ya', kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
             { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
             { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' }, { kana: 'ん', romaji: 'n' }
         ];
         const dakuonData = [
             { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
             { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
-            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'di' }, { kana: 'づ', romaji: 'du' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'di' }, { kana: 'づ', romaji: 'du' }, { kana: '低', kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
             { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
             { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
         ];
@@ -398,7 +388,7 @@
             { kana: 'きゃ', romaji: 'kya' }, { kana: 'きゅ', romaji: 'kyu' }, { kana: 'きょ', romaji: 'kyo' },
             { kana: 'しゃ', romaji: 'sya' }, { kana: 'しゅ', romaji: 'syu' }, { kana: 'しょ', romaji: 'syo' },
             { kana: 'ちゃ', romaji: 'cha' }, { kana: 'ちゅ', romaji: 'chu' }, { kana: 'ちょ', romaji: 'cho' },
-            { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'にょ', romaji: 'nyo' },
+            { kana: 'にゃ', romaji: 'nya' }, { kana: 'にゅ', romaji: 'nyu' }, { kana: 'niょ', kana: 'にょ', romaji: 'nyo' },
             { kana: 'ひゃ', romaji: 'hya' }, { kana: 'ひゅ', romaji: 'hyu' }, { kana: 'ひょ', romaji: 'hyo' },
             { kana: 'みゃ', romaji: 'mya' }, { kana: 'みゅ', romaji: 'myu' }, { kana: 'みょ', romaji: 'myo' },
             { kana: 'りゃ', romaji: 'rya' }, { kana: 'りゅ', romaji: 'ryu' }, { kana: 'りょ', romaji: 'ryo' },
@@ -443,6 +433,9 @@
                 let dakuonExamClears = 0; let finalExamClears = 0; let reverseClears = 0;
                 let dakuonReverseClears = 0; let youonClears = 0; let youonExamClears = 0;
 
+                // 💡 新增：自我增進通關次數
+                let gojuonBoosterClears = 0; let dakuonBoosterClears = 0; let youonBoosterClears = 0;
+
                 let examMistakes = {};
                 let dakuonExamMistakes = {};
                 let youonExamMistakes = {}; 
@@ -471,11 +464,21 @@
                     youonClears = data.youonClears || 0;
                     youonExamClears = data.youonExamClears || 0;
 
+                    // 撈取增進次數
+                    gojuonBoosterClears = data.gojuonBoosterClears || 0;
+                    dakuonBoosterClears = data.dakuonBoosterClears || 0;
+                    youonBoosterClears = data.youonBoosterClears || 0;
+
                     if (data.examMistakes) examMistakes = data.examMistakes;
                     if (data.dakuonExamMistakes) dakuonExamMistakes = data.dakuonExamMistakes;
                     if (data.youonExamMistakes) youonExamMistakes = data.youonExamMistakes;
                     if (data.bookmarks) bookmarks = data.bookmarks;
                 }
+
+                // 更新自我增進通關次數
+                document.getElementById('gojuon-booster-clears').textContent = gojuonBoosterClears;
+                document.getElementById('dakuon-booster-clears').textContent = dakuonBoosterClears;
+                document.getElementById('youon-booster-clears').textContent = youonBoosterClears;
 
                 // --- 📌 渲染【專屬標註區】 ---
                 const bookmarksPanel = document.getElementById('bookmarks-panel');
@@ -493,7 +496,7 @@
                     });
                 } else { bookmarksPanel.classList.add('hidden'); }
 
-                // --- 渲染【清音】常錯字 ---
+                // --- 渲染【清音】常錯字 (加入羅馬拼音) ---
                 const mistakesPanel = document.getElementById('mistakes-panel');
                 const mistakesContainer = document.getElementById('mistakes-container');
                 const mistakeEntries = Object.entries(examMistakes).sort((a, b) => b[1] - a[1]);
@@ -510,7 +513,7 @@
                     });
                 } else { mistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【濁音】常錯字 ---
+                // --- 渲染【濁音】常錯字 (加入羅馬拼音) ---
                 const dakuonMistakesPanel = document.getElementById('dakuon-mistakes-panel');
                 const dakuonMistakesContainer = document.getElementById('dakuon-mistakes-container');
                 const dakuonMistakeEntries = Object.entries(dakuonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -527,7 +530,7 @@
                     });
                 } else { dakuonMistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【拗音】常錯字 ---
+                // --- 渲染【拗音】常錯字 (加入羅馬拼音) ---
                 const youonMistakesPanel = document.getElementById('youon-mistakes-panel');
                 const youonMistakesContainer = document.getElementById('youon-mistakes-container');
                 const youonMistakeEntries = Object.entries(youonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -608,9 +611,7 @@
             }
         }
 
-        // ==========================================
-        // 🔄 全局重置按鈕邏輯
-        // ==========================================
+        // 全局重置按鈕邏輯
         const resetTargets = {
             'gojuon': { field: 'learned', lsKey: null, name: '清音特訓' },
             'exam': { field: 'examLearned', lsKey: 'exam_state_exam_', name: '清音盲測' },
@@ -632,29 +633,15 @@
                     const user = auth.currentUser;
                     if (!user) return alert('請先登入');
 
-                    // 避免按鈕連點
                     e.currentTarget.disabled = true;
-
                     try {
-                        // 1. 清空雲端該欄位的陣列
-                        await setDoc(doc(db, "users_progress", user.uid), {
-                            [config.field]: []
-                        }, { merge: true });
-
-                        // 2. 清除殘留的本地中斷存檔
-                        if (config.lsKey) {
-                            localStorage.removeItem(`${config.lsKey}${user.uid}`);
-                        }
-
-                        // 3. 重新抓取並渲染畫面
+                        await setDoc(doc(db, "users_progress", user.uid), { [config.field]: [] }, { merge: true });
+                        if (config.lsKey) localStorage.removeItem(`${config.lsKey}${user.uid}`);
                         await fetchAndRenderProgress(user.uid);
-                        
                         alert(`已成功重置【${config.name}】進度！`);
                     } catch(err) {
                         alert("重置失敗：" + err.message);
-                    } finally {
-                        e.currentTarget.disabled = false;
-                    }
+                    } finally { e.currentTarget.disabled = false; }
                 }
             });
         });
