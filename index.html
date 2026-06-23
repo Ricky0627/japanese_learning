@@ -67,7 +67,12 @@
                         <p class="text-gray-500 text-sm mt-2">初學者認字模式。附帶羅馬拼音與語音輔助，穩紮穩打建立 46 音基礎記憶。</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="gojuon-bar" class="progress progress-primary w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="gojuon" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="gojuon-bar" class="progress progress-primary w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-primary">🏆 通關: <span id="gojuon-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="gojuon-count">已掌握: 0 / 46 音</span>
@@ -89,7 +94,12 @@
                         <p class="text-gray-500 text-sm mt-2">實力檢定模式。拿掉羅馬拼音與語音，答錯字強制打入弱點名單進行雙倍強化！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="exam-bar" class="progress progress-warning w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="exam" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="exam-bar" class="progress progress-warning w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-warning">🏆 通關: <span id="exam-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="exam-count">精熟度: 0 / 46 音</span>
@@ -111,7 +121,12 @@
                         <p class="text-gray-500 text-sm mt-2">進階發音轉換。採用左右對照顯示，利用清音基礎快速聯想並記憶 25 個濁音。</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="dakuon-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="dakuon" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="dakuon-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-secondary">🏆 通關: <span id="dakuon-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="dakuon-count">已掌握: 0 / 25 音</span>
@@ -133,7 +148,12 @@
                         <p class="text-gray-500 text-sm mt-2">單元檢定考場。無提示測驗你的濁音反射神經，徹底消滅發音混淆的弱點！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="dakuon-exam-bar" class="progress progress-error w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="dakuon-exam" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="dakuon-exam-bar" class="progress progress-error w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-error">🏆 通關: <span id="dakuon-exam-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="dakuon-exam-count">精熟度: 0 / 25 音</span>
@@ -155,7 +175,12 @@
                         <p class="text-gray-500 text-sm mt-2">複合發音訓練。包含21個清音拗音與15個濁音/半濁音拗音，掌握發音訣竅。</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="youon-bar" class="progress progress-success w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="youon" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="youon-bar" class="progress progress-success w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-success">🏆 通關: <span id="youon-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="youon-count">已掌握: 0 / 36 音</span>
@@ -177,7 +202,12 @@
                         <p class="text-gray-500 text-sm mt-2">拗音實力檢定。將36個拗音完全打亂盲測，精準抓出大腦最容易打結的組合！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="youon-exam-bar" class="progress progress-success w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="youon-exam" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="youon-exam-bar" class="progress progress-success w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-success">🏆 通關: <span id="youon-exam-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="youon-exam-count">精熟度: 0 / 36 音</span>
@@ -199,7 +229,12 @@
                         <p class="text-gray-500 text-sm mt-2">鷹眼特訓模式。看羅馬拼音在 46 個亂序假名中找出正確清音，徹底強化視覺記憶！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="reverse-bar" class="progress progress-info w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="reverse" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="reverse-bar" class="progress progress-info w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-info">🏆 通關: <span id="reverse-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="reverse-count">尋字力: 0 / 46 音</span>
@@ -221,7 +256,12 @@
                         <p class="text-gray-500 text-sm mt-2">進階鷹眼特訓。從 25 個濁音與半濁音中精準找出對應假名，消滅所有混淆弱點！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="dakuon-reverse-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="dakuon-reverse" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="dakuon-reverse-bar" class="progress progress-secondary w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-secondary">🏆 通關: <span id="dakuon-reverse-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="dakuon-reverse-count">尋字力: 0 / 25 音</span>
@@ -243,7 +283,12 @@
                         <p class="text-gray-500 text-sm mt-2">大魔王關卡。將清音與濁音共 71 個發音打亂混考，完美通關即代表你已制霸聽寫！</p>
                         
                         <div class="w-full mt-6">
-                            <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
+                            <div class="flex items-center gap-2 mb-1">
+                                <button class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-error hover:bg-error/20 reset-progress-btn" data-target="final-exam" title="重置進度">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <progress id="final-exam-bar" class="progress progress-accent w-full" value="0" max="100"></progress>
+                            </div>
                             <div class="flex justify-between w-full mt-1">
                                 <span class="text-xs font-bold text-accent">🏆 通關: <span id="final-exam-clears">0</span> 次</span>
                                 <span class="text-xs text-gray-400" id="final-exam-count">精熟度: 0 / 71 音</span>
@@ -448,7 +493,7 @@
                     });
                 } else { bookmarksPanel.classList.add('hidden'); }
 
-                // --- 渲染【清音】常錯字 (加入羅馬拼音) ---
+                // --- 渲染【清音】常錯字 ---
                 const mistakesPanel = document.getElementById('mistakes-panel');
                 const mistakesContainer = document.getElementById('mistakes-container');
                 const mistakeEntries = Object.entries(examMistakes).sort((a, b) => b[1] - a[1]);
@@ -465,7 +510,7 @@
                     });
                 } else { mistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【濁音】常錯字 (加入羅馬拼音) ---
+                // --- 渲染【濁音】常錯字 ---
                 const dakuonMistakesPanel = document.getElementById('dakuon-mistakes-panel');
                 const dakuonMistakesContainer = document.getElementById('dakuon-mistakes-container');
                 const dakuonMistakeEntries = Object.entries(dakuonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -482,7 +527,7 @@
                     });
                 } else { dakuonMistakesPanel.classList.add('hidden'); }
 
-                // --- 渲染【拗音】常錯字 (加入羅馬拼音) ---
+                // --- 渲染【拗音】常錯字 ---
                 const youonMistakesPanel = document.getElementById('youon-mistakes-panel');
                 const youonMistakesContainer = document.getElementById('youon-mistakes-container');
                 const youonMistakeEntries = Object.entries(youonExamMistakes).sort((a, b) => b[1] - a[1]);
@@ -563,6 +608,58 @@
             }
         }
 
+        // ==========================================
+        // 🔄 全局重置按鈕邏輯
+        // ==========================================
+        const resetTargets = {
+            'gojuon': { field: 'learned', lsKey: null, name: '清音特訓' },
+            'exam': { field: 'examLearned', lsKey: 'exam_state_exam_', name: '清音盲測' },
+            'dakuon': { field: 'dakuonLearned', lsKey: null, name: '濁音特訓' },
+            'dakuon-exam': { field: 'dakuonExamLearned', lsKey: 'exam_state_dakuon_', name: '濁音盲測' },
+            'youon': { field: 'youonLearned', lsKey: null, name: '拗音特訓' },
+            'youon-exam': { field: 'youonExamLearned', lsKey: 'exam_state_youon_', name: '拗音盲測' },
+            'reverse': { field: 'reverseLearned', lsKey: 'exam_state_reverse_', name: '清音尋字' },
+            'dakuon-reverse': { field: 'dakuonReverseLearned', lsKey: 'exam_state_dakuon_reverse_', name: '濁音尋字' },
+            'final-exam': { field: 'finalExamLearned', lsKey: 'exam_state_final_', name: '終極魔王' }
+        };
+
+        document.querySelectorAll('.reset-progress-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const targetKey = e.currentTarget.dataset.target;
+                const config = resetTargets[targetKey];
+                
+                if(confirm(`確定要將【${config.name}】的進度歸零重新開始嗎？\n（通關次數與錯字紀錄將為您保留）`)) {
+                    const user = auth.currentUser;
+                    if (!user) return alert('請先登入');
+
+                    // 避免按鈕連點
+                    e.currentTarget.disabled = true;
+
+                    try {
+                        // 1. 清空雲端該欄位的陣列
+                        await setDoc(doc(db, "users_progress", user.uid), {
+                            [config.field]: []
+                        }, { merge: true });
+
+                        // 2. 清除殘留的本地中斷存檔
+                        if (config.lsKey) {
+                            localStorage.removeItem(`${config.lsKey}${user.uid}`);
+                        }
+
+                        // 3. 重新抓取並渲染畫面
+                        await fetchAndRenderProgress(user.uid);
+                        
+                        alert(`已成功重置【${config.name}】進度！`);
+                    } catch(err) {
+                        alert("重置失敗：" + err.message);
+                    } finally {
+                        e.currentTarget.disabled = false;
+                    }
+                }
+            });
+        });
+
+        // 登入事件
         document.getElementById('btn-login').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
@@ -570,6 +667,7 @@
             try { await signInWithEmailAndPassword(auth, em, pw); } catch (error) { alert('登入失敗，請檢查帳號密碼'); }
         });
 
+        // 註冊事件
         document.getElementById('btn-register').addEventListener('click', async () => {
             const em = document.getElementById('email').value.trim();
             const pw = document.getElementById('password').value;
